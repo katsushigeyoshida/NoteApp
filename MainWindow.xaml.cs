@@ -67,6 +67,7 @@ namespace NoteApp
 
             mRootFolder = Path.GetFullPath(mRootFolder);
             Directory.CreateDirectory(mRootFolder);
+            mBackupFolder = Path.GetFullPath(mBackupFolder);
 
             mFileFormat = mFileFormats[mFileFormatNo];
             mFileExt = mFileExts[mFileFormatNo];
@@ -125,10 +126,12 @@ namespace NoteApp
             //    lbCategoryList.Width = Properties.Settings.Default.CategoryListWidth;
             //if (0 < Properties.Settings.Default.ItemListWidth)
             //    lbItemList.Width = Properties.Settings.Default.ItemListWidth;
+
             if (0 < Properties.Settings.Default.BackupFolder.Length)
                 mBackupFolder = Properties.Settings.Default.BackupFolder;
             if (0 < Properties.Settings.Default.RootFolder.Length)
                 mRootFolder = Properties.Settings.Default.RootFolder;
+
             if (0 < Properties.Settings.Default.GenreName.Length)
                 mCurGenre = Properties.Settings.Default.GenreName;
             if (0 < Properties.Settings.Default.CategoryName.Length)
@@ -254,6 +257,10 @@ namespace NoteApp
                 dataRestor();
             } else if (menuItem.Name.CompareTo("cbBackupFolderMenu") == 0) {
                 setBackupFolder();
+            } else if (menuItem.Name.CompareTo("cbInitSetMenu") == 0) {
+                setInitFolder();
+            } else if (menuItem.Name.CompareTo("cbInfoPropertyMenu") == 0) {
+                infoProperty();
             }
         }
 
@@ -356,7 +363,17 @@ namespace NoteApp
             //  カーソルの位置の単語取得
             TextPointer caretPos = rtTextEditor.CaretPosition;
             string word = caretPos.GetTextInRun(LogicalDirection.Backward);
+            int p = word.LastIndexOf("\"");
+            if (p < 0)
+                p = word.LastIndexOf(" ");
+            if (0 <= p)
+                word = word.Substring(p + 1);
             word += caretPos.GetTextInRun(LogicalDirection.Forward);
+            p = word.IndexOf("\"");
+            if (p < 0)
+                p = word.IndexOf(" ");
+            if (0 < p)
+                word = word.Substring(0, p);
             //  ファイルの実行(開く)
             if (0 < word.Length)
                 ylib.openUrl(word);
@@ -772,22 +789,6 @@ namespace NoteApp
         }
 
         /// <summary>
-        /// ルートフォルダの設定変更
-        /// </summary>
-        private void setRootFolder()
-        {
-            string rootFolder = ylib.folderSelect(mRootFolder);
-            if (0 < rootFolder.Length) {
-                rootFolder = Path.Combine(rootFolder, mRootFolderName);
-                Directory.CreateDirectory(rootFolder);
-                if (Directory.Exists(rootFolder)) {
-                    mRootFolder = rootFolder;
-                    getInitList();
-                }
-            }
-        }
-
-        /// <summary>
         /// データをバックアップする
         /// </summary>
         private void dataBackUp()
@@ -805,6 +806,22 @@ namespace NoteApp
         }
 
         /// <summary>
+        /// ルートフォルダの設定変更
+        /// </summary>
+        private void setRootFolder()
+        {
+            string rootFolder = ylib.folderSelect(mRootFolder);
+            if (0 < rootFolder.Length) {
+                rootFolder = Path.Combine(rootFolder, mRootFolderName);
+                if (!Directory.Exists(rootFolder)) {
+                    Directory.CreateDirectory(rootFolder);
+                }
+                mRootFolder = rootFolder;
+                getInitList();
+            }
+        }
+
+        /// <summary>
         /// バックアップフォルダの設定
         /// </summary>
         private void setBackupFolder()
@@ -812,11 +829,39 @@ namespace NoteApp
             string backupFolder = ylib.folderSelect(mBackupFolder);
             if (0 < backupFolder.Length) {
                 backupFolder = Path.Combine(backupFolder, mBackupFolderName);
-                Directory.CreateDirectory(backupFolder);
                 if (Directory.Exists(backupFolder)) {
-                    mBackupFolder = backupFolder;
+                    Directory.CreateDirectory(backupFolder);
                 }
+                mBackupFolder = backupFolder;
             }
+        }
+
+        /// <summary>
+        /// 初期値に戻す
+        /// </summary>
+        private void setInitFolder()
+        {
+            //  データフォルダの初期値
+            mRootFolder = ".\\" + mRootFolderName;
+            mRootFolder = Path.GetFullPath(mRootFolder);
+            if (!Directory.Exists(mRootFolder))
+                Directory.CreateDirectory(mRootFolder);
+            getInitList();
+            //  バックアップフォルダの初期値
+            mBackupFolder = ".\\" + mBackupFolderName;
+            mBackupFolder = Path.GetFullPath(mBackupFolder);
+            if (Directory.Exists(mBackupFolder))
+                Directory.CreateDirectory(mBackupFolder);
+        }
+
+        /// <summary>
+        /// プロパティ表示
+        /// </summary>
+        private void infoProperty()
+        {
+            string mes = "データフォルダ\n" + mRootFolder;
+            mes += "\n\nバックアップフォルダ\n" + mBackupFolder;
+            MessageBox.Show(mes, "プロパティ");
         }
 
         /// <summary>
@@ -829,11 +874,8 @@ namespace NoteApp
             mEnableGenreList = false;
 
             getGenreList();
-            cbGenreList.SelectedIndex = 0;
             getCategoryList();
-            lbCategoryList.SelectedIndex = 0;
             getItemList();
-            lbItemList.SelectedIndex = 0;
             mCurItemPath = getItemPath();
 
             mEnableItemList = true;

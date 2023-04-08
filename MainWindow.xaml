@@ -24,6 +24,8 @@
                                 <MenuItem Name="cbRestorMenu" Header="バックアップの復元" Click="cbGenreMenu_Click" />
                                 <MenuItem Name="cbRootFolderMenu" Header="ルートフォルダの設定" Click="cbGenreMenu_Click" />
                                 <MenuItem Name="cbBackupFolderMenu" Header="バックアップフォルダの設定" Click="cbGenreMenu_Click" />
+                                <MenuItem Name="cbInitSetMenu" Header="初期値に戻す" Click="cbGenreMenu_Click" />
+                                <MenuItem Name="cbInfoPropertyMenu" Header="プロパティ" Click="cbGenreMenu_Click" />
                             </ContextMenu>
                         </ComboBox.ContextMenu>
                     </ComboBox>
