@@ -176,5 +176,8 @@
     <Resource Include="ICON\BackgroundColor.png" />
     <Resource Include="ICON\FontColor.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ICON\Settings.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
