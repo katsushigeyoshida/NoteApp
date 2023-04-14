@@ -51,6 +51,19 @@ namespace NoteApp
         private bool mEnableCategoryList = true;                //  小分類変更の有効性
         private bool mEnableGenreList = true;                   //  大分類変更の有効性
         private TextPointer mCurTextPointer;                    //  検索した文字列の位置
+        private bool mFontSizeEnabled = true;                   //  文字サイズSpinner有効可否
+        private bool mFontFamilyEnabled = true;                 //  m文字ファミリーSpinner有効可否
+        private string[] mSettingMenu = {                       //  設定コマンドのメニュー
+            "データバックアップ", "バックアップの復元", "ルートフォルダの設定", "バックアップフォルダの設定",
+            "データフォルダを初期値に戻す", "プロパティ"
+        };
+        private string[] mDateTimeMenu = {
+            "今日の日付挿入 西暦(YYYY年MM月DD日)", "今日の日付挿入 西暦('YY年MM月DD日)", "今日の日付挿入 西暦付(YYYY/MM/DD)",
+            "今日の日付挿入 和暦(令和YY年MM月DD日)",
+            "現在時刻(HH時MM分SS秒)", "現在時刻(午前hh時MM分SS秒)", "現在時刻(HH:MM:SS)",
+            "西暦→和暦変換", "和暦→西暦変換",
+            "曜日の挿入(Sunday)","曜日の挿入(SUN)","曜日の挿入(日曜日)","曜日の挿入(日)"
+        };
 
         private YLib ylib = new YLib();
 
@@ -60,15 +73,20 @@ namespace NoteApp
 
             WindowFormLoad();
 
+            //  FontFamilyとSizeの設定
             cbFontFamily.ItemsSource = Fonts.SystemFontFamilies.OrderBy(f => f.Source);
             cbFontSize.ItemsSource = new List<double>() {
                  8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72
             };
+            setFontConbBox();
 
+            int index;
+            //  フォルダの設定
             mRootFolder = Path.GetFullPath(mRootFolder);
             Directory.CreateDirectory(mRootFolder);
             mBackupFolder = Path.GetFullPath(mBackupFolder);
 
+            //  データファイルのフォーマットと各ちょしの設定
             mFileFormat = mFileFormats[mFileFormatNo];
             mFileExt = mFileExts[mFileFormatNo];
 
@@ -81,18 +99,19 @@ namespace NoteApp
                 setTitle();
             }
 
+            //  前回の大分類、分類、項目を設定
             if (0 < mCurGenre.Length) {
-                int index = cbGenreList.Items.IndexOf(mCurGenre);
+                index = cbGenreList.Items.IndexOf(mCurGenre);
                 if (0 <= index)
                     cbGenreList.SelectedIndex = index;
             }
             if (0 < mCurCategory.Length) {
-                int index = lbCategoryList.Items.IndexOf(mCurCategory);
+                index = lbCategoryList.Items.IndexOf(mCurCategory);
                 if (0 <= index)
                     lbCategoryList.SelectedIndex = index;
             }
             if (0 < mCurItem.Length) {
-                int index = lbItemList.Items.IndexOf(mCurItem);
+                index = lbItemList.Items.IndexOf(mCurItem);
                 if (0 <= index)
                     lbItemList.SelectedIndex = index;
             }
@@ -167,7 +186,7 @@ namespace NoteApp
         /// <param name="e"></param>
         private void cbFontFamily_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (cbFontFamily.SelectedItem != null) {
+            if (cbFontFamily.SelectedItem != null && mFontFamilyEnabled) {
                 rtTextEditor.Selection.ApplyPropertyValue(Inline.FontFamilyProperty, cbFontFamily.SelectedItem);
             }
         }
@@ -179,7 +198,9 @@ namespace NoteApp
         /// <param name="e"></param>
         private void cbFontSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            rtTextEditor.Selection.ApplyPropertyValue(Inline.FontSizeProperty, cbFontSize.SelectedItem);
+            if (mFontSizeEnabled) {
+                rtTextEditor.Selection.ApplyPropertyValue(Inline.FontSizeProperty, cbFontSize.SelectedItem);
+            }
         }
 
         /// <summary>
@@ -249,18 +270,6 @@ namespace NoteApp
                 renameGenre();
             } else if (menuItem.Name.CompareTo("cbGenreRemoveMenu") == 0) {
                 removeGenre();
-            } else if (menuItem.Name.CompareTo("cbRootFolderMenu") == 0) {
-                setRootFolder();
-            } else if (menuItem.Name.CompareTo("cbBackupMenu") == 0) {
-                dataBackUp();
-            } else if (menuItem.Name.CompareTo("cbRestorMenu") == 0) {
-                dataRestor();
-            } else if (menuItem.Name.CompareTo("cbBackupFolderMenu") == 0) {
-                setBackupFolder();
-            } else if (menuItem.Name.CompareTo("cbInitSetMenu") == 0) {
-                setInitFolder();
-            } else if (menuItem.Name.CompareTo("cbInfoPropertyMenu") == 0) {
-                infoProperty();
             }
         }
 
@@ -273,7 +282,11 @@ namespace NoteApp
         {
             MenuItem menuItem = (MenuItem)e.Source;
             if (menuItem.Name.CompareTo("rtEditorCalcMenu") == 0) {
-                textCalulate(rtTextEditor);
+                TextRange range = new TextRange(rtTextEditor.Selection.Start, rtTextEditor.Selection.End);
+                range.Text = textCalulate(range.Text);
+            } else if (menuItem.Name.CompareTo("rtEditorDateTimeMenu") == 0) {
+                TextRange range = new TextRange(rtTextEditor.Selection.Start, rtTextEditor.Selection.End);
+                range.Text = textDateTime(range.Text);
             }
         }
 
@@ -351,6 +364,31 @@ namespace NoteApp
             searchWord(rtTextEditor, tbSearchWord.Text);
         }
 
+        /// <summary>
+        /// 設定メニューの表示
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btSetting_Click(object sender, RoutedEventArgs e)
+        {
+            MenuDialog dlg = new MenuDialog();
+            dlg.mMainWindow = this;
+            dlg.mHorizontalAliment = 0;
+            dlg.mVerticalAliment = 2;
+            dlg.Title = "設定メニュー";
+            dlg.mMenuList = mSettingMenu.ToList();
+            dlg.ShowDialog();
+            int index = mSettingMenu.FindIndex(dlg.mResultMenu);
+            switch (index) {
+                case 0: dataBackUp(); break;
+                case 1: dataRestor(); break;
+                case 2: setRootFolder(); break;
+                case 3: setBackupFolder(); break;
+                case 4: setInitFolder(); break;
+                case 5: infoProperty(); break;
+            }
+        }
+
 
         /// <summary>
         /// RichTextBoxでマウスダブルクリック
@@ -375,25 +413,157 @@ namespace NoteApp
             if (0 < p)
                 word = word.Substring(0, p);
             //  ファイルの実行(開く)
-            if (0 < word.Length)
+            if (0 < word.Length && (0 <= word.IndexOf("http") || File.Exists(word)) )
                 ylib.openUrl(word);
         }
 
         /// <summary>
-        /// 選択文字列を計算する
+        /// マウスの左ボタンダウン(Previewないと取れない)
         /// </summary>
-        /// <param name="richTextBox">RichTextBox</param>
-        private void textCalulate(RichTextBox richTextBox)
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void rtTextEditor_PreviewMouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            TextRange range = new TextRange(richTextBox.Selection.Start, richTextBox.Selection.End);
-            string text = range.Text;
+            setFontConbBox();
+        }
+
+        /// <summary>
+        /// 数式から計算処理をおこなう
+        /// [引数]がある場合は前文から[引数]を検索して計算する
+        /// </summary>
+        /// <param name="text">数式</param>
+        /// <returns>数式+計算結果</returns>
+        private string textCalulate(string text)
+        {
             YCalc calc = new YCalc();
-            double result = calc.expression(ylib.stripControlCode(text.Replace(" ","")));   //  空白とコントロールコードを除いて計算
+
+            //  数式文字以外を除く
+            string express = ylib.stripControlCode(text);
+            express = calc.stripExpressData(express);
+
+            //  引数の抽出
+            double result = 0;
+            calc.setExpression(express);
+            string[] arg = calc.getArgKey();
+            if (0 < arg.Length) {
+                TextRange argRange = new TextRange(rtTextEditor.Document.ContentStart, rtTextEditor.Selection.Start);
+                string argText = argRange.Text;
+                for (int i = 0; i < arg.Length; i++) {
+                    int pos = argText.LastIndexOf(arg[i]);
+                    //  内部引数は除外して引数を設定
+                    if (0 <= pos && 0 > calc.mInnerParameter.FindIndex(arg[i])) {
+                        string val = getArgVal(argText.Substring(pos));
+                        calc.setArgValue(arg[i], val);
+                    }
+                }
+                result = calc.calculate();
+            } else {
+                result = calc.expression(express);
+            }
             if (calc.mError)
                 text += " = " + calc.mErrorMsg;
             else
                 text += " = " + result.ToString();
-            range.Text = text;
+            return text;
+        }
+
+        /// <summary>
+        /// 日時挿入・変換のメニューダイヤログを表示し、挿入・変換を行う
+        /// </summary>
+        /// <param name="text">選択文字列</param>
+        /// <returns>変換文字列</returns>
+        private string textDateTime(string text)
+        {
+            MenuDialog dlg = new MenuDialog();
+            dlg.mMainWindow = this;
+            dlg.Title = "日時挿入・変換メニュー";
+            dlg.mMenuList = mDateTimeMenu.ToList();
+            dlg.ShowDialog();
+            int index = mDateTimeMenu.FindIndex(dlg.mResultMenu);
+            DateTime now = DateTime.Now;
+            switch (index) {
+                case 0: text = now.ToString("yyyy年M月d日"); break;
+                case 1: text = now.ToString("\'yy年M月d日"); break;
+                case 2: text = now.ToString("yyyy/MM/dd"); break;
+                case 3: text = ylib.toWareki(); break;
+                case 4: text = now.ToString("HH時mm分ss秒"); break;
+                case 5: text = now.ToString("tth時m分s秒"); break;
+                case 6: text = now.ToString("T"); break;
+                case 7: text = convDateFormat(text); break;
+                case 8: text = convDateFormat(text, false); break;
+                case 9: text = convDate2Week(text, 0); break;
+                case 10: text = convDate2Week(text, 1); break;
+                case 11: text = convDate2Week(text, 2); break;
+                case 12: text = convDate2Week(text, 3); break;
+            }
+
+            return text;
+        }
+
+        /// <summary>
+        /// 西暦の日付を和暦に変換、和暦の日付を西暦に変換
+        /// </summary>
+        /// <param name="text">日付文字列</param>
+        /// <param name="wareki">和暦/西暦</param>
+        /// <returns>変換日付</returns>
+        private string convDateFormat(string text, bool wareki = true)
+        {
+            (int index,string dateStr) = ylib.getDateMatch(text);
+            if (0 < dateStr.Length) {
+                string date = ylib.cnvDateFormat(dateStr);
+                if (0 < date.Length) {
+                    DateTime dt = DateTime.Parse(date);
+                    if (wareki) {
+                        text = text.Replace(dateStr, ylib.toWareki(dt.ToString("yyyy/MM/dd")));
+                    } else {
+                        text = text.Replace(dateStr, dt.ToString("yyyy年M月d日"));
+                    }
+                }
+            }
+            return text;
+        }
+
+        /// <summary>
+        /// 選択した日付に曜日を追加
+        /// 曜日のタイプ  0:Sunday 1:SUN 2:日曜日 3:日
+        /// </summary>
+        /// <param name="text">日付文字列</param>
+        /// <param name="type">曜日のタイプ</param>
+        /// <returns>曜日付き日付</returns>
+        private string convDate2Week(string text, int type)
+        {
+            (int index, string dateStr) = ylib.getDateMatch(text);
+            if (0 < dateStr.Length) {
+                string date = ylib.cnvDateFormat(dateStr);
+                if (0 < date.Length) {
+                    text += " " + ylib.cnvDateWeekday(type, date);
+                }
+            }
+            return text;
+
+        }
+
+        /// <summary>
+        /// 引数の値を抽出する
+        /// </summary>
+        /// <param name="buf">引数文字列</param>
+        /// <returns>値</returns>
+        private string getArgVal(string buf)
+        {
+            string valbuf = "0";
+            int eqPos = buf.IndexOf('=');
+            int nextArgStart = buf.IndexOf('[', buf.IndexOf(']'));
+            if (eqPos < 0 || (0 <= nextArgStart && nextArgStart < eqPos)) {
+                buf = "";
+            } else {
+                valbuf = buf.Substring(eqPos + 1);
+                nextArgStart = valbuf.IndexOf('[');
+                if (0 <= nextArgStart) {
+                    valbuf = valbuf.Substring(0, nextArgStart);
+                }
+                valbuf = ylib.string2StringNum(valbuf);
+            }
+            return valbuf;
         }
 
         /// <summary>
@@ -419,6 +589,7 @@ namespace NoteApp
 
         /// <summary>
         /// 文字列検索 検索した文字列を選択状態にする
+        /// 大文字と小文字は区別しない
         /// </summary>
         /// <param name="richTextBox">RichTextBox</param>
         /// <param name="searchText">検索文字列</param>
@@ -426,13 +597,15 @@ namespace NoteApp
         {
             if (mCurTextPointer ==null)
                 mCurTextPointer = richTextBox.Document.ContentStart;
+            searchText = searchText.ToLower();
             while (mCurTextPointer != null) {
                 TextPointer end = mCurTextPointer.GetPositionAtOffset(searchText.Length);
                 if (end != null) {
                     TextRange foundText = new TextRange(mCurTextPointer, end);
                     // 見つかった
-                    if (searchText.Equals(foundText.Text, System.StringComparison.Ordinal)) {
-                        richTextBox.Focus();  // 次行で選択状態にするためにフォーカスする
+                    //if (searchText.Equals(foundText.Text, System.StringComparison.Ordinal)) { //  箇条書きなどの先頭にコントロールコードが入ると不可
+                    if (0 <= foundText.Text.ToLower().IndexOf(searchText)) {
+                        richTextBox.Focus();    // 次行で選択状態にするためにフォーカスする
                         richTextBox.Selection.Select(foundText.Start, foundText.End);
                         mCurTextPointer = mCurTextPointer.GetNextInsertionPosition(LogicalDirection.Forward);
                         break;
@@ -801,8 +974,10 @@ namespace NoteApp
         /// </summary>
         private void dataRestor()
         {
-            ylib.copyDrectory(mBackupFolder, mRootFolder);
-            getInitList();
+            if (MessageBox.Show("バックアップデータを元に戻します\n既存のデータが上書きされます","確認", MessageBoxButton.OKCancel) == MessageBoxResult.OK) {
+                ylib.copyDrectory(mBackupFolder, mRootFolder);
+                getInitList();
+            }
         }
 
         /// <summary>
@@ -1057,6 +1232,23 @@ namespace NoteApp
             string categoryPath = getCategoryPath(genre, category);
             string itemPath = Path.Combine(categoryPath, itemName + mFileExt);
             return itemPath;
+        }
+
+        /// <summary>
+        /// カーソル位置のフォントファミリーとサイズを取得してコンボボックスに設定
+        /// </summary>
+        private void setFontConbBox()
+        {
+            mFontSizeEnabled = false;
+            mFontFamilyEnabled = false;
+            object fontSize = rtTextEditor.Selection.GetPropertyValue(Inline.FontSizeProperty);
+            int index = cbFontSize.Items.IndexOf(Math.Round((double)fontSize));
+            cbFontSize.SelectedIndex = index;
+            object fontFamily = rtTextEditor.Selection.GetPropertyValue(Inline.FontFamilyProperty);
+            index = cbFontFamily.Items.IndexOf(fontFamily);
+            cbFontFamily.SelectedIndex = index;
+            mFontSizeEnabled = true;
+            mFontFamilyEnabled = true;
         }
 
         /// <summary>

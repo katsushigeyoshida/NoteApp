@@ -20,12 +20,6 @@
                                 <MenuItem Name="cbGenreAddMenu" Header="追加" Click="cbGenreMenu_Click" />
                                 <MenuItem Name="cbGenreRenameMenu" Header="名前の変更" Click="cbGenreMenu_Click" />
                                 <MenuItem Name="cbGenreRemoveMenu" Header="削除" Click="cbGenreMenu_Click" />
-                                <MenuItem Name="cbBackupMenu" Header="データバックアップ" Click="cbGenreMenu_Click" />
-                                <MenuItem Name="cbRestorMenu" Header="バックアップの復元" Click="cbGenreMenu_Click" />
-                                <MenuItem Name="cbRootFolderMenu" Header="ルートフォルダの設定" Click="cbGenreMenu_Click" />
-                                <MenuItem Name="cbBackupFolderMenu" Header="バックアップフォルダの設定" Click="cbGenreMenu_Click" />
-                                <MenuItem Name="cbInitSetMenu" Header="初期値に戻す" Click="cbGenreMenu_Click" />
-                                <MenuItem Name="cbInfoPropertyMenu" Header="プロパティ" Click="cbGenreMenu_Click" />
                             </ContextMenu>
                         </ComboBox.ContextMenu>
                     </ComboBox>
@@ -59,10 +53,10 @@
                     <Button Command="EditingCommands.ToggleUnderline" ToolTip="下線 Ctrl+U">
                         <Image Source="ICON\underline.png"></Image>
                     </Button>
-                    <Button Command="EditingCommands.IncreaseFontSize" ToolTip="文字拡大">
+                    <Button Command="EditingCommands.IncreaseFontSize" ToolTip="文字拡大 Ctrl+] (大括弧)">
                         <Image Source="ICON\CharacterGrowFont.png"></Image>
                     </Button>
-                    <Button Command="EditingCommands.DecreaseFontSize" ToolTip="文字縮小">
+                    <Button Command="EditingCommands.DecreaseFontSize" ToolTip="文字縮小 Ctrl+[ (大括弧)">
                         <Image Source="ICON\CharacterShrinkFont.png"></Image>
                     </Button>
                     <Button x:Name="btBackColor" ToolTip="文字背景色" Click="btFontBackColor_Click" >
@@ -77,30 +71,43 @@
                     <Button Command="EditingCommands.ToggleNumbering" ToolTip="番号付き箇条書き Ctrl+Shift+N">
                         <Image Source="ICON/ListNumbering.png"></Image>
                     </Button>
-                    <Button Command="EditingCommands.AlignLeft" ToolTip="左寄せ">
+                    <Button Command="EditingCommands.AlignLeft" ToolTip="左寄せ Ctrl+L">
                         <Image Source="ICON\ParagraphLeftJustify.png"></Image>
                     </Button>
-                    <Button Command="EditingCommands.AlignCenter" ToolTip="中央寄せ">
+                    <Button Command="EditingCommands.AlignCenter" ToolTip="中央寄せ Ctrl+E">
                         <Image Source="ICON\ParagraphCenterJustify.png"></Image>
                     </Button>
-                    <Button Command="EditingCommands.AlignRight" ToolTip="右寄せ">
+                    <Button Command="EditingCommands.AlignRight" ToolTip="右寄せ Ctrl+R">
                         <Image Source="ICON\ParagraphRightJustify.png"></Image>
                     </Button>
-                    <Button Command="EditingCommands.AlignJustify" ToolTip="均等寄せ">
+                    <Button Command="EditingCommands.AlignJustify" ToolTip="均等寄せ Ctrl+J">
                         <Image Source="ICON\ParagraphFullJustify.png"></Image>
                     </Button>
-                    <Button Command="EditingCommands.IncreaseIndentation" ToolTip="インデント">
+                    <Button Command="EditingCommands.IncreaseIndentation" ToolTip="インデント Ctrl+T">
                         <Image Source="ICON\ParagraphIncreaseIndentation.png"></Image>
                     </Button>
-                    <Button Command="EditingCommands.DecreaseIndentation" ToolTip="デインデント">
+                    <Button Command="EditingCommands.DecreaseIndentation" ToolTip="デインデントCtrl+Shift+T">
                         <Image Source="ICON\ParagraphDecreaseIndentation.png"></Image>
                     </Button>
                 </ToolBar>
             </ToolBarTray>
             <StatusBar Name="sbStatus" DockPanel.Dock="Bottom" Height="25">
+                <Button x:Name="btSetting" Click="btSetting_Click" ToolTip="設定" >
+                    <Image Source="ICON\Settings.png" />
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Name="cbBackupMenu" Header="データバックアップ" Click="cbGenreMenu_Click" />
+                            <MenuItem Name="cbRestorMenu" Header="バックアップの復元" Click="cbGenreMenu_Click" />
+                            <MenuItem Name="cbRootFolderMenu" Header="ルートフォルダの設定" Click="cbGenreMenu_Click" />
+                            <MenuItem Name="cbBackupFolderMenu" Header="バックアップフォルダの設定" Click="cbGenreMenu_Click" />
+                            <MenuItem Name="cbInitSetMenu" Header="初期値に戻す" Click="cbGenreMenu_Click" />
+                            <MenuItem Name="cbInfoPropertyMenu" Header="プロパティ" Click="cbGenreMenu_Click" />
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
                 <TextBlock x:Name="tbStatusbar" />
-                <TextBox x:Name="tbSearchWord" Width="100" />
-                <Button x:Name="btSearch" Click="btSearch_Click"  >
+                <TextBox x:Name="tbSearchWord" Width="100" ToolTip="検索文字" />
+                <Button x:Name="btSearch" ToolTip="検索" Click="btSearch_Click"  >
                     <Image Source="ICON\Search.png"></Image>
                 </Button>
             </StatusBar>
@@ -144,13 +151,14 @@
                         </ListBox.ContextMenu>
                     </ListBox>
                     <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
-                    <RichTextBox Grid.Column="2" x:Name="rtTextEditor" AcceptsTab="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" MouseDoubleClick="rtTextEditor_MouseDoubleClick" >
+                    <RichTextBox Grid.Column="2" x:Name="rtTextEditor" AcceptsTab="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" MouseDoubleClick="rtTextEditor_MouseDoubleClick" PreviewMouseLeftButtonUp="rtTextEditor_PreviewMouseLeftButtonUp" >
                         <RichTextBox.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="コピー" Command="ApplicationCommands.Copy" />
                                 <MenuItem Header="切り取り" Command="ApplicationCommands.Cut" />
                                 <MenuItem Header="貼付け" Command="ApplicationCommands.Paste" />
                                 <MenuItem Name="rtEditorCalcMenu" Header="計算" Click="rtEditorMenu_Click" />
+                                <MenuItem Name="rtEditorDateTimeMenu" Header="日時の挿入・変換" Click="rtEditorMenu_Click" />
                             </ContextMenu>
                         </RichTextBox.ContextMenu>
                     </RichTextBox>
