@@ -5,7 +5,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using WpfLib;
 
 namespace NoteApp
@@ -19,6 +21,7 @@ namespace NoteApp
         private double mWindowHeight;                           //  ウィンドウ幅
         private double mPrevWindowWidth;                        //  変更前のウィンドウ幅
         private WindowState mWindowState = WindowState.Normal;  //  ウィンドウの状態(最大化/最小化)
+        private WindowState mWinState;
 
         private const string mRootFolderName = "KNote";         //  データフォルダ名
         private const string mBackupFolderName = "KNoteBackup"; //  バックアップフォルダ名
@@ -64,6 +67,7 @@ namespace NoteApp
             "西暦→和暦変換", "和暦→西暦変換",
             "曜日の挿入(Sunday)","曜日の挿入(SUN)","曜日の挿入(日曜日)","曜日の挿入(日)"
         };
+        private int mImageMaxWidth = 600;                       //  スクリーンキャプチャしたイメージを貼り付ける最大幅
 
         private YLib ylib = new YLib();
 
@@ -177,6 +181,27 @@ namespace NoteApp
             //Properties.Settings.Default.CategoryListWidth = colDef0.ActualWidth;
             //Properties.Settings.Default.ItemListWidth = colDef20.ActualWidth;
             Properties.Settings.Default.Save();
+        }
+
+        /// <summary>
+        /// キー入力処理
+        /// 画面上にButtonやComboBoxを追加すると矢印キーやタブキーがkeyDownでは
+        /// 取得できなくなるのでPreviewKeyDownで取得する
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            bool control = false;
+            if (e.KeyboardDevice.Modifiers == ModifierKeys.Control)
+                control = true;
+
+            if (e.Key == Key.F12) {
+                //  スクリーンキャプチャ
+                screenCapture(rtTextEditor);
+            } else if (e.Key == Key.F11) {
+                getClipbordImage(rtTextEditor);
+            }
         }
 
         /// <summary>
@@ -389,6 +414,25 @@ namespace NoteApp
             }
         }
 
+        /// <summary>
+        /// スクリーンキャプチャ
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btScreenCapture_Click(object sender, RoutedEventArgs e)
+        {
+            screenCapture(rtTextEditor);
+        }
+
+        /// <summary>
+        /// クリップボードの画像データをサイズ指定で貼り付け
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btImagePaste_Click(object sender, RoutedEventArgs e)
+        {
+            getClipbordImage(rtTextEditor);
+        }
 
         /// <summary>
         /// RichTextBoxでマウスダブルクリック
@@ -612,6 +656,64 @@ namespace NoteApp
                     }
                 }
                 mCurTextPointer = mCurTextPointer.GetNextInsertionPosition(LogicalDirection.Forward);
+            }
+        }
+
+        /// <summary>
+        /// 画面の一部を切り取ってカーソル位置に貼り付ける
+        /// </summary>
+        /// <param name="rc">RichTextBox</param>
+        private void screenCapture(RichTextBox rc)
+        {
+            //  自アプリ退避
+            mWinState = this.WindowState;
+            this.WindowState = WindowState.Minimized;
+            System.Threading.Thread.Sleep(500);
+            //  全画面をキャプチャ
+            BitmapSource bitmapSource = ylib.bitmap2BitmapSource(ylib.getFullScreenCapture()); ;
+            //  自アプリを元に戻す
+            this.WindowState = mWinState;
+            this.Activate();
+            //  キャプチャしたイメージを全画面表示し領域を切り取る
+            FullView dlg = new FullView();
+            dlg.mBitmapSource = bitmapSource;
+            if (dlg.ShowDialog() == true) {
+                System.Drawing.Bitmap bitmap = ylib.cnvBitmapSource2Bitmap(bitmapSource);
+                bitmap = ylib.trimingBitmap(bitmap, dlg.mStartPoint, dlg.mEndPoint);
+
+                //  切り取った領域を貼り付ける
+                Image image = new Image();
+                image.Stretch = Stretch.Fill;
+                if (mImageMaxWidth < bitmap.Width) {
+                    image.Width = mImageMaxWidth;
+                    image.Height = image.Width * bitmap.Height / bitmap.Width;
+                } else {
+                    image.Width = bitmap.Width;
+                    image.Height = bitmap.Height;
+                }
+                image.Source = ylib.bitmap2BitmapSource(bitmap);
+                var tp = rc.CaretPosition.GetInsertionPosition(LogicalDirection.Forward);
+                new InlineUIContainer(image, tp);
+            }
+        }
+
+        /// <summary>
+        /// クリップボードの画像を大きさを指定して貼り付ける
+        /// </summary>
+        /// <param name="rc"></param>
+        private void getClipbordImage(RichTextBox rc)
+        {
+            ImagePaste dlg = new ImagePaste();
+            dlg.mMainWindow = this;
+            dlg.Title = "画像のサイズ設定";
+            if (dlg.ShowDialog() == true) {
+                Image image = new Image();
+                image.Stretch = Stretch.Fill;
+                image.Width = dlg.mWidth;
+                image.Height = dlg.mHeight;
+                image.Source = dlg.mBitmapSource;
+                var tp = rc.CaretPosition.GetInsertionPosition(LogicalDirection.Forward);
+                new InlineUIContainer(image, tp);
             }
         }
 

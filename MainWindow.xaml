@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NoteApp"
         mc:Ignorable="d"
-        Title="Noteもどき" Height="450" Width="800" Closing="Window_Closing">
+        Title="Noteもどき" Height="450" Width="900" Closing="Window_Closing" PreviewKeyDown="Window_PreviewKeyDown" >
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="27*"/>
@@ -88,6 +88,12 @@
                     </Button>
                     <Button Command="EditingCommands.DecreaseIndentation" ToolTip="デインデントCtrl+Shift+T">
                         <Image Source="ICON\ParagraphDecreaseIndentation.png"></Image>
+                    </Button>
+                    <Button Name="btScreenCapture" ToolTip="スクリーンキャプチャ　F12" Click="btScreenCapture_Click" >
+                        <Image Source="ICON\ScreenShot.png" />
+                    </Button>
+                    <Button x:Name="btImagePaste" ToolTip="画像データをサイズ指定で貼り付け F11" Click="btImagePaste_Click" >
+                        <Image Source="ICON\SelectFrame.png" />
                     </Button>
                 </ToolBar>
             </ToolBarTray>
