@@ -60,9 +60,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ImagePaste.xaml.cs">
+      <DependentUpon>ImagePaste.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SelectCategory.xaml.cs">
       <DependentUpon>SelectCategory.xaml</DependentUpon>
     </Compile>
+    <Page Include="ImagePaste.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -178,6 +185,11 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="ICON\Settings.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ICON\CaptureFrame.png" />
+    <Resource Include="ICON\Screenshot.png" />
+    <Resource Include="ICON\SelectFrame.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
