@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -247,6 +248,8 @@ namespace NoteApp
                 copyItem();
             } else if (menuItem.Name.CompareTo("lbItemMoveMenu") == 0) {
                 copyItem(true);
+            } else if (menuItem.Name.CompareTo("lbItemLinkMenu") == 0) {
+                linkItem();
             } else if (menuItem.Name.CompareTo("lbItemOpenMenu") == 0) {
                 openItem();
             } else if (menuItem.Name.CompareTo("lbItemReloadMenu") == 0) {
@@ -255,6 +258,8 @@ namespace NoteApp
                 importItem();
             } else if (menuItem.Name.CompareTo("lbItemExprtMenu") == 0) {
                 exportItem();
+            } else if (menuItem.Name.CompareTo("lbItemPropertyMenu") == 0) {
+                propertyItem();
             }
         }
 
@@ -402,6 +407,7 @@ namespace NoteApp
             dlg.mVerticalAliment = 2;
             dlg.Title = "設定メニュー";
             dlg.mMenuList = mSettingMenu.ToList();
+            dlg.mOneClick = true;
             dlg.ShowDialog();
             int index = mSettingMenu.FindIndex(dlg.mResultMenu);
             switch (index) {
@@ -522,6 +528,7 @@ namespace NoteApp
             dlg.mMainWindow = this;
             dlg.Title = "日時挿入・変換メニュー";
             dlg.mMenuList = mDateTimeMenu.ToList();
+            dlg.mOneClick = true;
             dlg.ShowDialog();
             int index = mDateTimeMenu.FindIndex(dlg.mResultMenu);
             DateTime now = DateTime.Now;
@@ -763,6 +770,8 @@ namespace NoteApp
                     int index = lbItemList.Items.IndexOf(Path.GetFileNameWithoutExtension(dlg.mEditText));
                     if (0 <= index)
                         lbItemList.SelectedIndex = index;
+                } else {
+                    MessageBox.Show("項目名が重複しています", "項目名の変更");
                 }
             }
         }
@@ -775,11 +784,13 @@ namespace NoteApp
             if (lbItemList.SelectedIndex < 0)
                 return;
             string selectItemName = lbItemList.SelectedItem.ToString();
-            string itemPath = getItemPath(selectItemName);
-            File.Delete(itemPath);
-            mCurItemPath = "";
-            getItemList();
-            lbItemList.SelectedIndex = 0;
+            if (MessageBox.Show(selectItemName + " を削除します", "項目削除",MessageBoxButton.OKCancel) == MessageBoxResult.OK) {
+                string itemPath = getItemPath(selectItemName);
+                File.Delete(itemPath);
+                mCurItemPath = "";
+                getItemList();
+                lbItemList.SelectedIndex = 0;
+            }
         }
 
         /// <summary>
@@ -797,10 +808,10 @@ namespace NoteApp
             dlg.mRootFolder = mRootFolder;
             if (dlg.ShowDialog() == true) {
                 string oldItemPath = getItemPath(itemName);
-                string newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, itemName);
+                string newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, itemName, true);
                 int opt = 1;
                 while (File.Exists(newItemPath)) {
-                    newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, itemName + "("+opt+")");
+                    newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, itemName + "("+opt+")", true);
                     opt++;
                 }
                 if (move) {
@@ -811,6 +822,49 @@ namespace NoteApp
                 }
                 getItemList();
             }
+        }
+
+        /// <summary>
+        /// Itemのリンクを作成
+        /// </summary>
+        private void linkItem()
+        {
+            if (lbItemList.SelectedIndex < 0)
+                return;
+            string itemName = lbItemList.SelectedItem.ToString();
+
+            SelectCategory dlg = new SelectCategory();
+            dlg.mMainWindow = this;
+            dlg.mRootFolder = mRootFolder;
+            if (dlg.ShowDialog() == true) {
+                string oldItemPath = getItemPath(itemName);
+                string newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, itemName, true);
+                int opt = 1;
+                while (File.Exists(newItemPath)) {
+                    newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, itemName + "(" + opt + ")", true);
+                    opt++;
+                }
+                createLinkFile(newItemPath, oldItemPath);
+                getItemList();
+            }
+        }
+
+        /// <summary>
+        /// Itemのリンクファイルの作成
+        /// </summary>
+        /// <param name="itemPath"></param>
+        /// <param name="linkPath"></param>
+        private void createLinkFile(string itemPath, string linkPath)
+        {
+            string ext = Path.GetExtension(itemPath);
+            if (0 < ext.Length) {
+                itemPath = itemPath.Replace(ext, ".lnk");
+            } else {
+                itemPath += ".lnk";
+            }
+            linkPath = Path.GetFullPath(linkPath);
+            linkPath = linkPath.Substring(mRootFolder.Length + 1);
+            ylib.saveTextFile(itemPath, linkPath);
         }
 
         /// <summary>
@@ -892,6 +946,29 @@ namespace NoteApp
                     saveFile(fpath, mFileFormats[index]);
                 }
             }
+        }
+
+        /// <summary>
+        /// 項目ファイルの属性表示
+        /// </summary>
+        private void propertyItem()
+        {
+            if (lbItemList.SelectedIndex < 0)
+                return;
+            string itemName = lbItemList.SelectedItem.ToString();
+            string itemPath = getItemPath(itemName);
+            string buf = "項目名: " + itemName + "\n";
+            buf += "分類名: " + mCurCategory + "\n";
+            buf += "大分類名: " + mCurGenre + "\n";
+            buf += "パス: " + itemPath + "\n";
+            if (Path.GetExtension(itemPath) == ".lnk") {
+                buf += "リンク先: " + getLinkPath(itemPath) + "\n";
+            }
+            FileInfo fileInfo = new FileInfo(itemPath);
+            buf += "ファイルサイズ: " + fileInfo.Length.ToString("#,###") + "\n";
+            buf += "作成日: " + fileInfo.CreationTime + "\n";
+            buf += "更新日: " + fileInfo.LastWriteTime + "\n";
+            MessageBox.Show(buf, "ファイルプロパティ");
         }
 
         /// <summary>
@@ -1068,7 +1145,10 @@ namespace NoteApp
         /// </summary>
         private void dataBackUp()
         {
-            ylib.copyDrectory(mRootFolder, mBackupFolder);
+            //ylib.copyDrectory(mRootFolder, mBackupFolder);
+            DirectoryDiff directoryDiff = new DirectoryDiff(mRootFolder, mBackupFolder);
+            int count = directoryDiff.syncFolder();
+            MessageBox.Show($"{count} ファイルのバックアップを更新しました。");
         }
 
         /// <summary>
@@ -1272,10 +1352,12 @@ namespace NoteApp
         /// <param name="category">小分類</param>
         private void getItemList(string genre, string category)
         {
-            string itemPath = Path.Combine(mRootFolder, genre);
-            itemPath = Path.Combine(itemPath, category);
-            itemPath = Path.Combine(itemPath, "*" + mFileExt);
+            string itemFolder = Path.Combine(mRootFolder, genre);
+            itemFolder = Path.Combine(itemFolder, category);
+            string itemPath = Path.Combine(itemFolder, "*" + mFileExt);
+            string itemPath2 = Path.Combine(itemFolder, "*.lnk");
             mItemList = ylib.getFiles(itemPath).ToList();
+            mItemList.AddRange(ylib.getFiles(itemPath2).ToList());
             if (mItemList.Count == 0) {
                 //  ファイルが存在しない場合、からファイルをつくる
                 string itemFile = Path.Combine(mRootFolder, genre);
@@ -1301,11 +1383,14 @@ namespace NoteApp
         /// Item(ファイル)のパスを求める
         /// </summary>
         /// <param name="itemName">Item名(拡張子なし)</param>
+        /// <param name="write">ファイル作成時</param>
         /// <returns>パス</returns>
-        private string getItemPath(string itemName)
+        private string getItemPath(string itemName, bool write = false)
         {
             string categoryPath = getCategoryPath();
             string itemPath = Path.Combine(categoryPath, itemName + mFileExt);
+            if (!write && !File.Exists(itemPath))
+                itemPath = Path.Combine(categoryPath, itemName + ".lnk");
             return itemPath;
         }
 
@@ -1314,11 +1399,14 @@ namespace NoteApp
         /// </summary>
         /// <param name="category">Category名</param>
         /// <param name="itemName">Item名</param>
+        /// <param name="write">ファイル作成時</param>
         /// <returns>パス</returns>
-        private string getItemPath(string category, string itemName)
+        private string getItemPath(string category, string itemName, bool write = false)
         {
             string categoryPath = getCategoryPath(category);
             string itemPath = Path.Combine(categoryPath, itemName + mFileExt);
+            if (!write && !File.Exists(itemPath))
+                itemPath = Path.Combine(categoryPath, itemName + ".lnk");
             return itemPath;
         }
 
@@ -1328,11 +1416,14 @@ namespace NoteApp
         /// <param name="genre">Genre名</param>
         /// <param name="category">Category名</param>
         /// <param name="itemName">Item名</param>
+        /// <param name="write">ファイル作成時</param>
         /// <returns>パス</returns>
-        private string getItemPath(string genre, string category, string itemName)
+        private string getItemPath(string genre, string category, string itemName, bool write = false)
         {
             string categoryPath = getCategoryPath(genre, category);
             string itemPath = Path.Combine(categoryPath, itemName + mFileExt);
+            if (!write && !File.Exists(itemPath))
+                itemPath = Path.Combine(categoryPath, itemName + ".lnk");
             return itemPath;
         }
 
@@ -1392,6 +1483,7 @@ namespace NoteApp
         {
             if (path.Length == 0)
                 return;
+            path = getLinkPath(path);
             try {
                 TextRange range;
                 FileStream fStream;
@@ -1411,6 +1503,7 @@ namespace NoteApp
         /// <param fileFormat="path">ファイルフォーマット</param>
         private void loadFile(string path, string fileFormat)
         {
+            path = getLinkPath(path);
             TextRange range;
             FileStream fStream;
             if (File.Exists(path)) {
@@ -1425,6 +1518,22 @@ namespace NoteApp
                     MessageBox.Show(e.Message);
                 }
             }
+        }
+
+        /// <summary>
+        /// リンクファイルのリンク先パスの取得
+        /// </summary>
+        /// <param name="path">リンクファイルパス</param>
+        /// <returns></returns>
+        private string getLinkPath(string path)
+        {
+            if (Path.GetExtension(path) == ".lnk") {
+                string buf = ylib.loadTextFile(path);
+                if (0 < buf.Length) {
+                    path = Path.Combine(mRootFolder, buf);
+                }
+            }
+            return path;
         }
 
         /// <summary>

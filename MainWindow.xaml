@@ -7,14 +7,10 @@
         mc:Ignorable="d"
         Title="Noteもどき" Height="450" Width="900" Closing="Window_Closing" PreviewKeyDown="Window_PreviewKeyDown" >
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="27*"/>
-            <ColumnDefinition Width="23*"/>
-        </Grid.ColumnDefinitions>
         <DockPanel Grid.ColumnSpan="2">
             <ToolBarTray DockPanel.Dock="Top">
                 <ToolBar Height="30">
-                    <ComboBox Name="cbGenreList" Width="100" SelectionChanged="cbGenreList_SelectionChanged" >
+                    <ComboBox Name="cbGenreList" Width="100" ToolTip="大分類" SelectionChanged="cbGenreList_SelectionChanged" >
                         <ComboBox.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Name="cbGenreAddMenu" Header="追加" Click="cbGenreMenu_Click" />
@@ -123,7 +119,7 @@
                     <ColumnDefinition Width="5" />
                     <ColumnDefinition Width="100*" />
                 </Grid.ColumnDefinitions>
-                <ListBox Name="lbCategoryList" Grid.Column="0" SelectionChanged="lbCategoryList_SelectionChanged">
+                <ListBox Name="lbCategoryList" Grid.Column="0" ToolTip="分類リスト" SelectionChanged="lbCategoryList_SelectionChanged">
                     <ListBox.ContextMenu>
                         <ContextMenu>
                             <MenuItem Name="lbCategoryAddMenu" Header="追加" Click="lbCategoryMenu_Click" />
@@ -141,7 +137,7 @@
                         <ColumnDefinition Width="5" />
                         <ColumnDefinition Width="100*" />
                     </Grid.ColumnDefinitions>
-                    <ListBox Name="lbItemList" Grid.Column="0" SelectionChanged="lbItemList_SelectionChanged" Grid.RowSpan="2">
+                    <ListBox Name="lbItemList" Grid.Column="0" ToolTip="項目リスト" SelectionChanged="lbItemList_SelectionChanged" Grid.RowSpan="2">
                         <ListBox.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Name="lbItemAddMenu" Header="追加" Click="lbItemMenu_Click" />
@@ -149,10 +145,12 @@
                                 <MenuItem Name="lbItemRemoveMenu" Header="削除" Click="lbItemMenu_Click" />
                                 <MenuItem Name="lbItemCopyMenu" Header="コピー" Click="lbItemMenu_Click" />
                                 <MenuItem Name="lbItemMoveMenu" Header="移動" Click="lbItemMenu_Click" />
+                                <MenuItem Name="lbItemLinkMenu" Header="リンク" Click="lbItemMenu_Click" />
                                 <MenuItem Name="lbItemOpenMenu" Header="他のアプリで開く" Click="lbItemMenu_Click" />
                                 <MenuItem Name="lbItemReloadMenu" Header="再取り込み" Click="lbItemMenu_Click" />
                                 <MenuItem Name="lbItemImportMenu" Header="インポート" Click="lbItemMenu_Click" />
                                 <MenuItem Name="lbItemExprtMenu" Header="エクスポート" Click="lbItemMenu_Click" />
+                                <MenuItem Name="lbItemPropertyMenu" Header="プロパティ" Click="lbItemMenu_Click" />
                             </ContextMenu>
                         </ListBox.ContextMenu>
                     </ListBox>
