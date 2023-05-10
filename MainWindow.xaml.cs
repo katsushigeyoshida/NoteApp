@@ -51,6 +51,7 @@ namespace NoteApp
         };
         private string mFileFormat;                             //  保存ファイル形式
         private string mFileExt;                                //  保存ファイルの拡張子
+        private string mLinkExt = ".nlnk";                     //  リンクファイルの拡張子
         private bool mEnableItemList = true;                    //  項目変更の有効性
         private bool mEnableCategoryList = true;                //  小分類変更の有効性
         private bool mEnableGenreList = true;                   //  大分類変更の有効性
@@ -311,12 +312,13 @@ namespace NoteApp
         private void rtEditorMenu_Click(object sender, RoutedEventArgs e)
         {
             MenuItem menuItem = (MenuItem)e.Source;
+            TextRange range = new TextRange(rtTextEditor.Selection.Start, rtTextEditor.Selection.End);
             if (menuItem.Name.CompareTo("rtEditorCalcMenu") == 0) {
-                TextRange range = new TextRange(rtTextEditor.Selection.Start, rtTextEditor.Selection.End);
                 range.Text = textCalulate(range.Text);
             } else if (menuItem.Name.CompareTo("rtEditorDateTimeMenu") == 0) {
-                TextRange range = new TextRange(rtTextEditor.Selection.Start, rtTextEditor.Selection.End);
                 range.Text = textDateTime(range.Text);
+            } else if (menuItem.Name.CompareTo("rtEditorUrlCnvMenu") == 0) {
+                range.Text = Uri.UnescapeDataString(range.Text);
             }
         }
 
@@ -331,8 +333,11 @@ namespace NoteApp
             if (0 <= lbItemList.SelectedIndex && mEnableItemList) {
                 saveCurFile();
                 mCurItemPath = getItemPath();
-                loadFile(mCurItemPath, mFileFormat);
-                setTitle();
+                if (loadFile(mCurItemPath, mFileFormat)) {
+                    setTitle();
+                } else {
+                    mCurItemPath = "";
+                }
             }
         }
 
@@ -735,7 +740,7 @@ namespace NoteApp
             dlg.mEditText = "";
             var result = dlg.ShowDialog();
             if (result == true && 0 < dlg.mEditText.Length) {
-                string itemPath = getItemPath(dlg.mEditText);
+                string itemPath = getItemPath(dlg.mEditText + mFileExt);
                 if (!mItemList.Contains(itemPath)) {
                     saveCurFile();
                     createFile(itemPath, mFileFormat);
@@ -754,20 +759,21 @@ namespace NoteApp
         {
             if (lbItemList.SelectedIndex < 0)
                 return;
-            string oldItem = lbItemList.SelectedItem.ToString();
+            string oldItemName = Path.GetFileName(mItemList[lbItemList.SelectedIndex]);
+            string oldItem = Path.GetFileNameWithoutExtension(oldItemName);
             InputBox dlg = new InputBox();
             dlg.mMainWindow = this;
             dlg.Title = "項目名の変更";
             dlg.mEditText = oldItem;
             var result = dlg.ShowDialog();
             if (result == true && 0 < dlg.mEditText.Length && oldItem != dlg.mEditText) {
-                string oldItemPath = getItemPath(oldItem);
-                string newItemPath = getItemPath(dlg.mEditText);
+                string oldItemPath = getItemPath(oldItemName);
+                string newItemPath = getItemPath(dlg.mEditText + Path.GetExtension(oldItemName));
                 if (!mItemList.Contains(newItemPath)) {
                     saveCurFile();
                     File.Move(oldItemPath, newItemPath);
                     getItemList();
-                    int index = lbItemList.Items.IndexOf(Path.GetFileNameWithoutExtension(dlg.mEditText));
+                    int index = mItemList.IndexOf(newItemPath);
                     if (0 <= index)
                         lbItemList.SelectedIndex = index;
                 } else {
@@ -783,9 +789,9 @@ namespace NoteApp
         {
             if (lbItemList.SelectedIndex < 0)
                 return;
-            string selectItemName = lbItemList.SelectedItem.ToString();
+            string itemPath = mItemList[lbItemList.SelectedIndex];
+            string selectItemName = Path.GetFileNameWithoutExtension(itemPath);
             if (MessageBox.Show(selectItemName + " を削除します", "項目削除",MessageBoxButton.OKCancel) == MessageBoxResult.OK) {
-                string itemPath = getItemPath(selectItemName);
                 File.Delete(itemPath);
                 mCurItemPath = "";
                 getItemList();
@@ -801,17 +807,19 @@ namespace NoteApp
         {
             if (lbItemList.SelectedIndex < 0)
                 return;
-            string itemName = lbItemList.SelectedItem.ToString();
+            string itemName = Path.GetFileName(mItemList[lbItemList.SelectedIndex]);
 
             SelectCategory dlg = new SelectCategory();
             dlg.mMainWindow = this;
             dlg.mRootFolder = mRootFolder;
             if (dlg.ShowDialog() == true) {
                 string oldItemPath = getItemPath(itemName);
-                string newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, itemName, true);
+                string newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, itemName);
+                string item = Path.GetFileNameWithoutExtension(itemName);
+                string ext = Path.GetExtension(itemName);
                 int opt = 1;
                 while (File.Exists(newItemPath)) {
-                    newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, itemName + "("+opt+")", true);
+                    newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, item + "("+opt+")" + ext);
                     opt++;
                 }
                 if (move) {
@@ -831,17 +839,19 @@ namespace NoteApp
         {
             if (lbItemList.SelectedIndex < 0)
                 return;
-            string itemName = lbItemList.SelectedItem.ToString();
+            string itemName = Path.GetFileName(mItemList[lbItemList.SelectedIndex]);
 
             SelectCategory dlg = new SelectCategory();
             dlg.mMainWindow = this;
             dlg.mRootFolder = mRootFolder;
             if (dlg.ShowDialog() == true) {
                 string oldItemPath = getItemPath(itemName);
-                string newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, itemName, true);
+                string item = Path.GetFileNameWithoutExtension(itemName);
+                string ext = mLinkExt;
+                string newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, item + ext);
                 int opt = 1;
                 while (File.Exists(newItemPath)) {
-                    newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, itemName + "(" + opt + ")", true);
+                    newItemPath = getItemPath(dlg.mSelectGenre, dlg.mSelectCategory, item + "(" + opt + ")" + ext);
                     opt++;
                 }
                 createLinkFile(newItemPath, oldItemPath);
@@ -858,9 +868,9 @@ namespace NoteApp
         {
             string ext = Path.GetExtension(itemPath);
             if (0 < ext.Length) {
-                itemPath = itemPath.Replace(ext, ".lnk");
+                itemPath = itemPath.Replace(ext, mLinkExt);
             } else {
-                itemPath += ".lnk";
+                itemPath += mLinkExt;
             }
             linkPath = Path.GetFullPath(linkPath);
             linkPath = linkPath.Substring(mRootFolder.Length + 1);
@@ -874,9 +884,8 @@ namespace NoteApp
         {
             if (lbItemList.SelectedIndex < 0)
                 return;
-            string itemName = lbItemList.SelectedItem.ToString();
-            string tmpPath = getItemPath(itemName);
-            tmpPath = tmpPath.Replace(mFileExt, mFileExts[2]);
+            string itemPath = mItemList[lbItemList.SelectedIndex];
+            string tmpPath = itemPath.Replace(mFileExt, mFileExts[2]);
             saveFile(tmpPath, mFileFormats[2]);       //  rtfで出力
             if (File.Exists(tmpPath)) {
                 ylib.fileExecute(tmpPath);
@@ -890,15 +899,15 @@ namespace NoteApp
         {
             if (lbItemList.SelectedIndex < 0)
                 return;
-            string itemName = lbItemList.SelectedItem.ToString();
-            string tmpPath = getItemPath(itemName);
+            string itemPath = mItemList[lbItemList.SelectedIndex];
+            string tmpPath = itemPath.Replace(mFileExt, mFileExts[2]);
             tmpPath = tmpPath.Replace(mFileExt, mFileExts[2]);
-            if (itemName == Path.GetFileNameWithoutExtension(tmpPath)) {
-                loadFile(tmpPath, mFileFormats[2]);
-                File.Delete(tmpPath);
-                mCurItemPath = getItemPath(itemName);
+            if (File.Exists(tmpPath)) {
+                if (loadFile(tmpPath, mFileFormats[2])) {
+                    File.Delete(tmpPath);
+                    mCurItemPath = itemPath;
+                }
             }
-
         }
 
         /// <summary>
@@ -911,17 +920,19 @@ namespace NoteApp
                 string ext = Path.GetExtension(fpath);
                 int fileNo = mFileExts.FindIndex(ext.ToLower());
                 if (0 <= fileNo) {
-                    loadFile(fpath, mFileFormats[fileNo]);
-                    string savePath = getItemPath(Path.GetFileNameWithoutExtension(fpath));
-                    int opt = 1;
-                    while (File.Exists(savePath)) {
-                        savePath = getItemPath(Path.GetFileNameWithoutExtension(fpath) + "(" + opt + ")");
-                        opt++;
+                    if (loadFile(fpath, mFileFormats[fileNo])) {
+                        string item = Path.GetFileNameWithoutExtension(fpath);
+                        string savePath = getItemPath(item + mFileExt);
+                        int opt = 1;
+                        while (File.Exists(savePath)) {
+                            savePath = getItemPath(item + "(" + opt + ")" + mFileExt);
+                            opt++;
+                        }
+                        saveFile(savePath, mFileFormats[mFileFormatNo]);
+                        getItemList();
+                        int index = lbItemList.Items.IndexOf(Path.GetFileNameWithoutExtension(savePath));
+                        lbItemList.SelectedIndex = index < 0 ? 0 : index;
                     }
-                    saveFile(savePath, mFileFormats[mFileFormatNo]);
-                    getItemList();
-                    int index = lbItemList.Items.IndexOf(Path.GetFileNameWithoutExtension(savePath));
-                    lbItemList.SelectedIndex = index < 0 ? 0 : index;
                 }
             }
         }
@@ -933,7 +944,7 @@ namespace NoteApp
         {
             if (lbItemList.SelectedIndex < 0)
                 return;
-            string itemName = lbItemList.SelectedItem.ToString();
+            string itemPath = mItemList[lbItemList.SelectedIndex];
             MenuDialog dlg = new MenuDialog();
             dlg.mMainWindow = this;
             dlg.Title = "ファイルの種類を選択";
@@ -941,7 +952,7 @@ namespace NoteApp
             dlg.ShowDialog();
             int index = mFileFormatMenu.FindIndex(dlg.mResultMenu);
             if (0 <= index) {
-                string fpath = ylib.saveFileSelect(".", mFileExts[index].Substring(1), itemName);
+                string fpath = ylib.saveFileSelect(".", mFileExts[index].Substring(1), Path.GetFileNameWithoutExtension(itemPath));
                 if (0 < fpath.Length) {
                     saveFile(fpath, mFileFormats[index]);
                 }
@@ -955,13 +966,13 @@ namespace NoteApp
         {
             if (lbItemList.SelectedIndex < 0)
                 return;
-            string itemName = lbItemList.SelectedItem.ToString();
-            string itemPath = getItemPath(itemName);
+            string itemPath = mItemList[lbItemList.SelectedIndex];
+            string itemName = Path.GetFileNameWithoutExtension(itemPath);
             string buf = "項目名: " + itemName + "\n";
             buf += "分類名: " + mCurCategory + "\n";
             buf += "大分類名: " + mCurGenre + "\n";
             buf += "パス: " + itemPath + "\n";
-            if (Path.GetExtension(itemPath) == ".lnk") {
+            if (Path.GetExtension(itemPath) == mLinkExt) {
                 buf += "リンク先: " + getLinkPath(itemPath) + "\n";
             }
             FileInfo fileInfo = new FileInfo(itemPath);
@@ -1034,11 +1045,17 @@ namespace NoteApp
                 return;
             string selectCategoryName = lbCategoryList.SelectedItem.ToString();
             string categoryPath = getCategoryPath(selectCategoryName);
-            Directory.Delete(categoryPath, true);
-            mCurItemPath = "";
-            lbCategoryList.SelectedIndex = -1;
-            getCategoryList();
-            lbCategoryList.SelectedIndex = 0;
+            if (MessageBox.Show(selectCategoryName + " を削除します", "分類削除", MessageBoxButton.OKCancel) == MessageBoxResult.OK) {
+                try {
+                    Directory.Delete(categoryPath, true);
+                } catch (Exception e) {
+                    MessageBox.Show(e.Message);
+                }
+                mCurItemPath = "";
+                lbCategoryList.SelectedIndex = -1;
+                getCategoryList();
+                lbCategoryList.SelectedIndex = 0;
+            }
         }
 
         /// <summary>
@@ -1133,11 +1150,17 @@ namespace NoteApp
                 return;
             string selectGenreName = cbGenreList.SelectedItem.ToString();
             string genrePath = getGenrePath(selectGenreName);
-            Directory.Delete(genrePath, true);
-            mCurItemPath = "";
-            cbGenreList.SelectedIndex = -1;
-            getGenreList();
-            cbGenreList.SelectedIndex = 0;
+            if (MessageBox.Show(selectGenreName + " を削除します", "大分類削除", MessageBoxButton.OKCancel) == MessageBoxResult.OK) {
+                try {
+                    Directory.Delete(genrePath, true);
+                } catch (Exception e) {
+                    MessageBox.Show(e.Message);
+                }
+                mCurItemPath = "";
+                cbGenreList.SelectedIndex = -1;
+                getGenreList();
+                cbGenreList.SelectedIndex = 0;
+            }
         }
 
         /// <summary>
@@ -1145,7 +1168,6 @@ namespace NoteApp
         /// </summary>
         private void dataBackUp()
         {
-            //ylib.copyDrectory(mRootFolder, mBackupFolder);
             DirectoryDiff directoryDiff = new DirectoryDiff(mRootFolder, mBackupFolder);
             int count = directoryDiff.syncFolder();
             MessageBox.Show($"{count} ファイルのバックアップを更新しました。");
@@ -1217,8 +1239,27 @@ namespace NoteApp
         private void infoProperty()
         {
             string mes = "データフォルダ\n" + mRootFolder;
+            mes += "\n" + getDirectoryInfo(mRootFolder, "データ", mFileExt);
+            mes += "\n" + getDirectoryInfo(mRootFolder, "リンク", mLinkExt);
             mes += "\n\nバックアップフォルダ\n" + mBackupFolder;
+            mes += "\n" + getDirectoryInfo(mBackupFolder, "データ", mFileExt);
+            mes += "\n" + getDirectoryInfo(mBackupFolder, "リンク", mLinkExt);
             MessageBox.Show(mes, "プロパティ");
+        }
+
+        /// <summary>
+        /// フォルダ検索情報
+        /// </summary>
+        /// <param name="folder">検索フォルダ</param>
+        /// <param name="title">タイトル</param>
+        /// <param name="ext">拡張子</param>
+        /// <returns></returns>
+        private string getDirectoryInfo(string folder, string title, string ext)
+        {
+            string buf = "";
+            List<FileInfo> fi = ylib.getDirectoriesInfo(folder, "*" + ext);
+            long size = fi.Sum(x => x.Length);
+            return $"{title}ファイル数: {fi.Count}  データサイズ: {size.ToString("#,###")} byte";
         }
 
         /// <summary>
@@ -1355,7 +1396,7 @@ namespace NoteApp
             string itemFolder = Path.Combine(mRootFolder, genre);
             itemFolder = Path.Combine(itemFolder, category);
             string itemPath = Path.Combine(itemFolder, "*" + mFileExt);
-            string itemPath2 = Path.Combine(itemFolder, "*.lnk");
+            string itemPath2 = Path.Combine(itemFolder, "*" + mLinkExt);
             mItemList = ylib.getFiles(itemPath).ToList();
             mItemList.AddRange(ylib.getFiles(itemPath2).ToList());
             if (mItemList.Count == 0) {
@@ -1376,21 +1417,20 @@ namespace NoteApp
         private string getItemPath()
         {
             int itemIndex = lbItemList.SelectedIndex < 0 ? 0 : lbItemList.SelectedIndex;
-            return getItemPath(lbItemList.Items[itemIndex].ToString());
+            return mItemList[itemIndex];
         }
 
         /// <summary>
         /// Item(ファイル)のパスを求める
         /// </summary>
-        /// <param name="itemName">Item名(拡張子なし)</param>
+        /// <param name="itemName">Item名(拡張子あり)</param>
         /// <param name="write">ファイル作成時</param>
         /// <returns>パス</returns>
-        private string getItemPath(string itemName, bool write = false)
+        private string getItemPath(string itemName)
         {
+            itemName = Path.GetFileName(itemName);
             string categoryPath = getCategoryPath();
-            string itemPath = Path.Combine(categoryPath, itemName + mFileExt);
-            if (!write && !File.Exists(itemPath))
-                itemPath = Path.Combine(categoryPath, itemName + ".lnk");
+            string itemPath = Path.Combine(categoryPath, itemName);
             return itemPath;
         }
 
@@ -1401,12 +1441,11 @@ namespace NoteApp
         /// <param name="itemName">Item名</param>
         /// <param name="write">ファイル作成時</param>
         /// <returns>パス</returns>
-        private string getItemPath(string category, string itemName, bool write = false)
+        private string getItemPath(string category, string itemName)
         {
+            itemName = Path.GetFileName(itemName);
             string categoryPath = getCategoryPath(category);
-            string itemPath = Path.Combine(categoryPath, itemName + mFileExt);
-            if (!write && !File.Exists(itemPath))
-                itemPath = Path.Combine(categoryPath, itemName + ".lnk");
+            string itemPath = Path.Combine(categoryPath, itemName);
             return itemPath;
         }
 
@@ -1415,15 +1454,14 @@ namespace NoteApp
         /// </summary>
         /// <param name="genre">Genre名</param>
         /// <param name="category">Category名</param>
-        /// <param name="itemName">Item名</param>
+        /// <param name="itemName">Item名(拡張子付き)</param>
         /// <param name="write">ファイル作成時</param>
         /// <returns>パス</returns>
-        private string getItemPath(string genre, string category, string itemName, bool write = false)
+        private string getItemPath(string genre, string category, string itemName)
         {
+            itemName = Path.GetFileName(itemName);
             string categoryPath = getCategoryPath(genre, category);
-            string itemPath = Path.Combine(categoryPath, itemName + mFileExt);
-            if (!write && !File.Exists(itemPath))
-                itemPath = Path.Combine(categoryPath, itemName + ".lnk");
+            string itemPath = Path.Combine(categoryPath, itemName);
             return itemPath;
         }
 
@@ -1438,7 +1476,7 @@ namespace NoteApp
             int index = cbFontSize.Items.IndexOf(Math.Round((double)fontSize));
             cbFontSize.SelectedIndex = index;
             object fontFamily = rtTextEditor.Selection.GetPropertyValue(Inline.FontFamilyProperty);
-            index = cbFontFamily.Items.IndexOf(fontFamily);
+            index = cbFontFamily.Items.IndexOf(fontFamily); 
             cbFontFamily.SelectedIndex = index;
             mFontSizeEnabled = true;
             mFontFamilyEnabled = true;
@@ -1501,9 +1539,9 @@ namespace NoteApp
         /// </summary>
         /// <param name="path">ファイルパス</param>
         /// <param fileFormat="path">ファイルフォーマット</param>
-        private void loadFile(string path, string fileFormat)
+        private bool loadFile(string fpath, string fileFormat)
         {
-            path = getLinkPath(path);
+            string path = getLinkPath(fpath);
             TextRange range;
             FileStream fStream;
             if (File.Exists(path)) {
@@ -1514,10 +1552,18 @@ namespace NoteApp
                     range.Load(fStream, fileFormat);
                     fStream.Close();
                     setInfoData();
+                    return true;
                 } catch (Exception e) {
                     MessageBox.Show(e.Message);
                 }
+            } else {
+                if (Path.GetExtension(fpath) == mLinkExt) {
+                    MessageBox.Show("リンク先のファイルが存在しません。削除されたかファイル名が変更された可能性があります。");
+                } else {
+                    MessageBox.Show("ファイルが存在しません。");
+                }
             }
+            return false;
         }
 
         /// <summary>
@@ -1527,7 +1573,7 @@ namespace NoteApp
         /// <returns></returns>
         private string getLinkPath(string path)
         {
-            if (Path.GetExtension(path) == ".lnk") {
+            if (Path.GetExtension(path) == mLinkExt) {
                 string buf = ylib.loadTextFile(path);
                 if (0 < buf.Length) {
                     path = Path.Combine(mRootFolder, buf);

@@ -163,6 +163,7 @@
                                 <MenuItem Header="貼付け" Command="ApplicationCommands.Paste" />
                                 <MenuItem Name="rtEditorCalcMenu" Header="計算" Click="rtEditorMenu_Click" />
                                 <MenuItem Name="rtEditorDateTimeMenu" Header="日時の挿入・変換" Click="rtEditorMenu_Click" />
+                                <MenuItem Name="rtEditorUrlCnvMenu" Header="Webアドレス変換" Click="rtEditorMenu_Click" />
                             </ContextMenu>
                         </RichTextBox.ContextMenu>
                     </RichTextBox>
