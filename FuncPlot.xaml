@@ -1,0 +1,34 @@
+﻿<Window x:Class="NoteApp.FuncPlot"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NoteApp"
+        mc:Ignorable="d"
+        Title="FuncPlotxaml" Height="450" Width="450" Loaded="Window_Loaded" Closing="Window_Closing" LayoutUpdated="Window_LayoutUpdated">
+    <Grid>
+        <Label Content="関数" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbFunction" Margin="80,5,70,0" Height="40" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
+        <Button x:Name="btExecute" Content="実行" Width="50" Margin="0,5,10,0" HorizontalAlignment="Right" VerticalAlignment="Top" Click="btExecute_Click"/>
+        <Label Content="関数形式"  Margin="10,45,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <RadioButton Name="rbNormal" Content="y=f(x)" Margin="80,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Click="rbFunctionType_Click"/>
+        <RadioButton Name="rbParametric" Content="x=f(t);y=g(t)" Margin="140,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Click="rbFunctionType_Click"/>
+        <RadioButton Name="rbPolar" Content="r=f(t)" Margin="230,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Click="rbFunctionType_Click"/>
+        <Button x:Name="btCopy" Content="コピー" Width="50" Margin="0,30,10,0" HorizontalAlignment="Right" VerticalAlignment="Top" Click="btCopy_Click" />
+        <Label Name="lbXmin" Content="範囲 x min"  Margin="10,65,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbXmin" Margin="80,70,0,0" Width="50" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label Content="max"  Margin="135,65,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbXmax" Margin="165,70,0,0" Width="50" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label Content="分割数"  Margin="220,65,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbDivCount" Margin="270,70,0,0" Width="50" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label Content="背景"  Margin="320,65,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <ComboBox Name="cbBackColor" Width="80" Margin="352,68,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" SelectionChanged="cbBackColor_SelectionChanged" />
+        <Label Content="範囲 y min"  Margin="10,90,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbYmin" Margin="80,95,0,0" Width="50" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label Content="max"  Margin="135,90,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbYmax" Margin="165,95,0,0" Width="50" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <CheckBox Name="cbAutoHeight" Content="自動" Margin="225,96,0,0"  HorizontalAlignment="Left" VerticalAlignment="Top" Click="cbAutoHeight_Click" />
+        <CheckBox Name="cbAspectFix" Content="アスペクト比固定" Margin="280,96,0,0"  HorizontalAlignment="Left" VerticalAlignment="Top" Click="cbAspectFix_Click" />
+        <Canvas x:Name="canvas" Background="White" Margin="0,120,0,0" />
+    </Grid>
+</Window>

@@ -38,6 +38,12 @@
     <ApplicationIcon>NoteApp.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenTK, Version=3.3.3.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.3.3.3\lib\net20\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK.GLControl, Version=3.3.3.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.GLControl.3.3.3\lib\net20\OpenTK.GLControl.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -54,18 +60,33 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="FuncPlot.xaml.cs">
+      <DependentUpon>FuncPlot.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="FuncPlot3D.xaml.cs">
+      <DependentUpon>FuncPlot3D.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ImagePaste.xaml.cs">
       <DependentUpon>ImagePaste.xaml</DependentUpon>
     </Compile>
     <Compile Include="SelectCategory.xaml.cs">
       <DependentUpon>SelectCategory.xaml</DependentUpon>
     </Compile>
+    <Page Include="FuncPlot.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="FuncPlot3D.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ImagePaste.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -105,6 +126,8 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="OpenTK.dll.config" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -138,6 +161,10 @@
     <Resource Include="ICON\print.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Wpf3DLib\Wpf3DLib.csproj">
+      <Project>{3481E3B0-72E0-486F-8007-B786C1323507}</Project>
+      <Name>Wpf3DLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\WpfLib\WpfLib.csproj">
       <Project>{5511DF02-9519-493C-9161-8907D5C62509}</Project>
       <Name>WpfLib</Name>

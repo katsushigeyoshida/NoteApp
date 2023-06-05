@@ -12,7 +12,7 @@ namespace NoteApp.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.5.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.6.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -200,6 +200,102 @@ namespace NoteApp.Properties {
             }
             set {
                 this["ItemName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FuncPlotTop {
+            get {
+                return ((double)(this["FuncPlotTop"]));
+            }
+            set {
+                this["FuncPlotTop"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FuncPlotLeft {
+            get {
+                return ((double)(this["FuncPlotLeft"]));
+            }
+            set {
+                this["FuncPlotLeft"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FuncPlotWidth {
+            get {
+                return ((double)(this["FuncPlotWidth"]));
+            }
+            set {
+                this["FuncPlotWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FuncPlotHeight {
+            get {
+                return ((double)(this["FuncPlotHeight"]));
+            }
+            set {
+                this["FuncPlotHeight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FuncPlot3DTop {
+            get {
+                return ((double)(this["FuncPlot3DTop"]));
+            }
+            set {
+                this["FuncPlot3DTop"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FuncPlot3DLeft {
+            get {
+                return ((double)(this["FuncPlot3DLeft"]));
+            }
+            set {
+                this["FuncPlot3DLeft"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FuncPlot3DWidth {
+            get {
+                return ((double)(this["FuncPlot3DWidth"]));
+            }
+            set {
+                this["FuncPlot3DWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double FuncPlot3DHeight {
+            get {
+                return ((double)(this["FuncPlot3DHeight"]));
+            }
+            set {
+                this["FuncPlot3DHeight"] = value;
             }
         }
     }
