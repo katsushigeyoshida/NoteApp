@@ -51,6 +51,8 @@ namespace NoteApp
                     lbImageSize.Content = $"{bitmap.Width} x {bitmap.Height}";      //  画像の大きさ
                     tbWidth.Text = bitmap.Width.ToString();
                     tbHeight.Text = bitmap.Height.ToString();
+                    tbRateWidth.Text = 100.ToString();
+                    tbRateHeight.Text = 100.ToString();
                     imImageView.Source = ylib.bitmap2BitmapSource(bitmap);
                 }
             } else {
@@ -69,8 +71,11 @@ namespace NoteApp
                 tbHeight.IsReadOnly = true;
                 int width = ylib.intParse(tbWidth.Text, 0);
                 tbHeight.Text = (width * mBitmapHeight / mBitmapWidth).ToString();
+                tbRateHeight.IsReadOnly = true;
+                tbRateHeight.Text = (width * 100 / mBitmapWidth).ToString();
             } else {
                 tbHeight.IsReadOnly = false;
+                tbRateHeight.IsReadOnly = false;
             }
         }
 
@@ -81,10 +86,49 @@ namespace NoteApp
         /// <param name="e"></param>
         private void tbWidth_KeyUp(object sender, KeyEventArgs e)
         {
+            int width = ylib.intParse(tbWidth.Text, 0);
             if (cbAspect.IsChecked == true) {
-                int width = ylib.intParse(tbWidth.Text, 0);
                 tbHeight.Text = (width * mBitmapHeight / mBitmapWidth).ToString();
+                tbRateHeight.Text = (width *100 / mBitmapWidth).ToString();
             }
+            tbRateWidth.Text = (width * 100 / mBitmapWidth).ToString();
+        }
+
+        /// <summary>
+        /// 画像の幅倍率の入力時の処理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tbRateWidth_KeyUp(object sender, KeyEventArgs e)
+        {
+            int ratewidth = ylib.intParse(tbRateWidth.Text, 0);
+            if (cbAspect.IsChecked == true) {
+                tbHeight.Text = (mBitmapHeight * ratewidth / 100).ToString();
+                tbRateHeight.Text = ratewidth.ToString();
+            }
+            tbWidth.Text = (mBitmapWidth * ratewidth / 100).ToString();
+        }
+
+        /// <summary>
+        /// 画像高さの入力時の処理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tbHeight_KeyUp(object sender, KeyEventArgs e)
+        {
+            int height = ylib.intParse(tbHeight.Text, 0);
+            tbRateHeight.Text = (height * 100 / mBitmapHeight).ToString();
+        }
+
+        /// <summary>
+        /// 画像高さ倍率入力時の処理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tbRateHeight_KeyUp(object sender, KeyEventArgs e)
+        {
+            int rateHeight = ylib.intParse(tbRateHeight.Text, 0);
+            tbHeight.Text = (rateHeight * mBitmapHeight / 100).ToString();
         }
 
         /// <summary>
