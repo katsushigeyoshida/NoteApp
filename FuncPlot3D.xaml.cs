@@ -453,7 +453,7 @@ namespace NoteApp
             else if (mFuncType == FUNCTYPE.Parametric)
                 makeParametricFuncData(mFuncList);              //  パラメトリックのデータ作成
             setAreaParameter();
-            if (0 < mPositionList.Count) {
+            if (mPositionList != null && 0 < mPositionList.Count) {
                 renderFrame();                                  //  座標データから三次元表示
             }
         }
@@ -517,6 +517,8 @@ namespace NoteApp
         /// <param name="function">数式リスト</param>
         private void makeFuncData(List<string> function)
         {
+            if (function == null || function.Count == 0)
+                return;
             //  表示関数と変数リストに分ける
             List<string> funcList = new List<string>();
             List<string> argList = new List<string>();
