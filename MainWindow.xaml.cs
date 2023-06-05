@@ -9,6 +9,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Wpf3DLib;
 using WpfLib;
 
 namespace NoteApp
@@ -200,9 +201,10 @@ namespace NoteApp
 
             if (e.Key == Key.F12) {
                 //  スクリーンキャプチャ
-                screenCapture(rtTextEditor);
+                screenCapture();
             } else if (e.Key == Key.F11) {
-                getClipbordImage(rtTextEditor);
+                //  クリップボード画像の編集
+                getClipbordImage();
             }
         }
 
@@ -237,7 +239,7 @@ namespace NoteApp
         /// <param name="e"></param>
         private void lbItemMenu_Click(object sender, RoutedEventArgs e)
         {
-            saveCurFile();
+            saveCurFile(true);
             MenuItem menuItem = (MenuItem)e.Source;
             if (menuItem.Name.CompareTo("lbItemAddMenu") == 0) {
                 addItem();
@@ -271,7 +273,7 @@ namespace NoteApp
         /// <param name="e"></param>
         private void lbCategoryMenu_Click(object sender, RoutedEventArgs e)
         {
-            saveCurFile();
+            saveCurFile(true);
             MenuItem menuItem = (MenuItem)e.Source;
             if (menuItem.Name.CompareTo("lbCategoryAddMenu") == 0) {
                 addCategory();
@@ -293,7 +295,7 @@ namespace NoteApp
         /// <param name="e"></param>
         private void cbGenreMenu_Click(object sender, RoutedEventArgs e)
         {
-            saveCurFile();
+            saveCurFile(true);
             MenuItem menuItem = (MenuItem)e.Source;
             if (menuItem.Name.CompareTo("cbGenreAddMenu") == 0) {
                 addGenre();
@@ -331,7 +333,7 @@ namespace NoteApp
         private void lbItemList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (0 <= lbItemList.SelectedIndex && mEnableItemList) {
-                saveCurFile();
+                saveCurFile(true);
                 mCurItemPath = getItemPath();
                 if (loadFile(mCurItemPath, mFileFormat)) {
                     setTitle();
@@ -432,7 +434,7 @@ namespace NoteApp
         /// <param name="e"></param>
         private void btScreenCapture_Click(object sender, RoutedEventArgs e)
         {
-            screenCapture(rtTextEditor);
+            screenCapture();
         }
 
         /// <summary>
@@ -442,7 +444,7 @@ namespace NoteApp
         /// <param name="e"></param>
         private void btImagePaste_Click(object sender, RoutedEventArgs e)
         {
-            getClipbordImage(rtTextEditor);
+            getClipbordImage();
         }
 
         /// <summary>
@@ -454,22 +456,17 @@ namespace NoteApp
         private void rtTextEditor_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             //  カーソルの位置の単語取得
-            TextPointer caretPos = rtTextEditor.CaretPosition;
-            string word = caretPos.GetTextInRun(LogicalDirection.Backward);
-            int p = word.LastIndexOf("\"");
-            if (p < 0)
-                p = word.LastIndexOf(" ");
-            if (0 <= p)
-                word = word.Substring(p + 1);
-            word += caretPos.GetTextInRun(LogicalDirection.Forward);
-            p = word.IndexOf("\"");
-            if (p < 0)
-                p = word.IndexOf(" ");
-            if (0 < p)
-                word = word.Substring(0, p);
+            string word = getCursorPosWord(rtTextEditor);
             //  ファイルの実行(開く)
             if (0 < word.Length && (0 <= word.IndexOf("http") || File.Exists(word)) )
                 ylib.openUrl(word);
+            else {
+                string str = getCursorPosData(rtTextEditor);
+                if (2 < str.Length) {
+                    List<string> listData = getWordList(str.Substring(1, str.Length - 2), true);
+                    executeFunc(listData);
+                }
+            }
         }
 
         /// <summary>
@@ -520,6 +517,267 @@ namespace NoteApp
             else
                 text += " = " + result.ToString();
             return text;
+        }
+
+        /// <summary>
+        /// RichTextBoxのカーソル位置の文字列を抽出
+        /// スペース(' ')またはダブルクォーテーション(")で囲まれた文字列か、一行分の文字列
+        /// </summary>
+        /// <param name="richText">RichTextBox</param>
+        /// <returns>文字列</returns>
+        private string getCursorPosWord(RichTextBox richText)
+        {
+            TextPointer caretPos = richText.CaretPosition;
+            string word = caretPos.GetTextInRun(LogicalDirection.Backward);
+            int p = word.LastIndexOf("\"");
+            if (p < 0)
+                p = word.LastIndexOf(" ");
+            if (0 <= p)
+                word = word.Substring(p + 1);
+            word += caretPos.GetTextInRun(LogicalDirection.Forward);
+            p = word.IndexOf("\"");
+            if (p < 0)
+                p = word.IndexOf(" ");
+            if (0 < p)
+                word = word.Substring(0, p);
+
+            return word;
+        }
+
+        /// <summary>
+        /// カーソル位置で"[[""]]"で囲まれた文字列を抽出する
+        /// </summary>
+        /// <param name="richText">RichTextBox</param>
+        /// <returns>文字列</returns>
+        private string getCursorPosData(RichTextBox richText)
+        {
+            TextPointer caretPos = richText.CaretPosition;
+            string word = caretPos.GetTextInRun(LogicalDirection.Backward);
+            int p = word.LastIndexOf("[[");
+            if (p < 0)
+                return "";
+            word = word.Substring(p);
+            word += caretPos.GetTextInRun(LogicalDirection.Forward);
+            word = ylib.getBracketInData(word, '[', ']', true);
+
+            TextRange range = new TextRange(rtTextEditor.Document.ContentStart, rtTextEditor.Document.ContentEnd);
+            string text = range.Text;
+            p = text.IndexOf(word);
+            if (0 <= p) {
+                text = text.Substring(p);
+                text = ylib.getBracketInData(text, '[', ']', true);
+                return text;
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// 文字列を'['']'で分解してリストに変換
+        /// </summary>
+        /// <param name="text">文字列</param>
+        /// <returns>分解リスト</returns>
+        private List<string> getWordList(string text, bool removeComment = false)
+        {
+            List<string> strList = new List<string>();
+            int bcount = 0;
+            string buf = "";
+            for (int i = 0; i < text.Length; i++) {
+                if (text[i] == '[') {
+                    if (0 < buf.Length && bcount == 0) {
+                        strList.Add(buf);
+                        buf = "";
+                    }
+                    bcount++;
+                    buf += text[i];
+                } else if (text[i]== ']') {
+                    bcount--;
+                    buf += text[i];
+                    if (bcount == 0) {
+                        strList.Add(buf);
+                        buf = "";
+                    }
+                } else if (text[i] == '\n') {
+                    buf += text[i];
+                    if (0 < buf.Length && bcount == 0) {
+                        strList.Add(buf);
+                        buf = "";
+                    }
+                } else if (text[i] == '$' && removeComment) {
+                    while (text[i] != '\n' && i < text.Length) {
+                        i++;
+                    }
+                    i--;
+                } else if (text[i] != '\t' && text[i] != ' ') {
+                    buf += text[i];
+                }
+            }
+            return strList;
+        }
+
+        /// <summary>
+        /// 文字列リスト
+        /// </summary>
+        /// <param name="dataList"></param>
+        private void executeFunc(List<string> dataList)
+        {
+            if (0 <= dataList[0].IndexOf("[関数グラフ]")) {
+                functionGraph(dataList);
+            } else if (0 <= dataList[0].IndexOf("[関数3Dグラフ]")) {
+                function3DGraph(dataList);
+            }
+        }
+
+        /// <summary>
+        /// 関数のグラフ表示
+        /// </summary>
+        /// <param name="dataList">データリスト</param>
+        private void functionGraph(List<string> dataList)
+        {
+            FuncPlot dlg = new FuncPlot();
+            dlg.Title = ylib.getBracketInData(dataList[1]);
+            for (int i = 2; i < dataList.Count; i++) {
+                if (0 <= dataList[i].IndexOf("[方程式タイプ")) {
+                    int p = dataList[i].IndexOf(':');
+                    if (0 <= p) {
+                        string buf = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        if (buf == "y=f(x)") dlg.mFuncType = FuncPlot.FUNCTYPE.Normal;
+                        else if (buf == "x=f(t),y=g(t)") dlg.mFuncType = FuncPlot.FUNCTYPE.Parametric;
+                        else if (buf == "r=f(t)") dlg.mFuncType = FuncPlot.FUNCTYPE.Polar;
+                    }
+                } else if (0 <= dataList[i].IndexOf("[x範囲") || 0 <= dataList[i].IndexOf("t範囲")) {
+                    int p = dataList[i].IndexOf('=');
+                    if (0 <= p) {
+                        string buf = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        string[] data = buf.Split(',');
+                        dlg.mXminStr = 0 < data.Length ? data[0] : "";
+                        dlg.mXmaxStr = 1 < data.Length ? data[1] : "";
+                        dlg.mDivCountStr = 2 < data.Length ? data[2] : "";
+                    }
+                } else if (0 <= dataList[i].IndexOf("[y範囲")) {
+                    int p = dataList[i].IndexOf('=');
+                    if (0 <= p) {
+                        string buf = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        string[] data = buf.Split(',');
+                        dlg.mYminStr = 0 < data.Length ? data[0] : "";
+                        dlg.mYmaxStr = 1 < data.Length ? data[1] : "";
+                        dlg.mAutoHeight = 2 < data.Length ? data[2] == "auto" : false;
+                    } else {
+                        dlg.mAutoHeight = true;
+                    }
+                } else if (0 <= dataList[i].IndexOf("[アスペクト比固定")) {
+                    int p = dataList[i].IndexOf('=');
+                    if (0 < p) {
+                        dlg.mAspectFix = ylib.boolParse(dataList[i].Substring(p + 1, dataList[i].Length - p - 2));
+                    }
+                } else if (0 <= dataList[i].IndexOf("[背景色")) {
+                    int p = dataList[i].IndexOf('=');
+                    if (0 <p) {
+                        string colorName = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        int colorNo = YDrawingShapes.mColorTitle.FindIndex(c => colorName == c);
+                        if (0 <= colorNo)
+                            dlg.mBackColor = YDrawingShapes.mColor[colorNo];
+                    }
+                } else if (0 <= dataList[i].IndexOf("[方程式:")) {
+                    int p = dataList[i].IndexOf(':');
+                    if (0 <= p) {
+                        string buf = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        string[] data = buf.Split('\n');
+                        List<string> listData = new List<string>();
+                        for (int j = 0; j < data.Length; j++) {
+                            int pc = data[j].IndexOf("$");
+                            string func = ylib.stripControlCode(0 <= pc ? data[j].Substring(0, pc) : data[j]);
+                            if (0 < func.Length)
+                                listData.Add(func);
+                        }
+                        dlg.mFuncList = listData;
+                    }
+                }
+            }
+
+            dlg.Show();
+        }
+
+        /// <summary>
+        /// 3次元関数のグラフ表示
+        /// </summary>
+        /// <param name="dataList">データリスト</param>
+        private void function3DGraph(List<string> dataList)
+        {
+            FuncPlot3D dlg = new FuncPlot3D();
+            dlg.Title = ylib.getBracketInData(dataList[1]);
+            for (int i = 2; i < dataList.Count; i++) {
+                if (0 <= dataList[i].IndexOf("[方程式タイプ")) {
+                    int p = dataList[i].IndexOf(':');
+                    if (0 <= p) {
+                        string buf = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        if (buf == "z=f(x,y)") dlg.mFuncType = FuncPlot3D.FUNCTYPE.Normal;
+                        else if (buf == "x=f(s,t),y=g(s,t),z=h(s,t)") dlg.mFuncType = FuncPlot3D.FUNCTYPE.Parametric;
+                    }
+                } else if (0 <= dataList[i].IndexOf("[x範囲") || 0 <= dataList[i].IndexOf("s範囲")) {
+                    int p = dataList[i].IndexOf('=');
+                    if (0 <= p) {
+                        string buf = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        string[] data = buf.Split(',');
+                        dlg.mXminStr = 0 < data.Length ? data[0] : "";
+                        dlg.mXmaxStr = 1 < data.Length ? data[1] : "";
+                        dlg.mDivCountStr = 2 < data.Length ? data[2] : "";
+                    }
+                } else if (0 <= dataList[i].IndexOf("[y範囲") || 0 <= dataList[i].IndexOf("t範囲")) {
+                    int p = dataList[i].IndexOf('=');
+                    if (0 <= p) {
+                        string buf = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        string[] data = buf.Split(',');
+                        dlg.mYminStr = 0 < data.Length ? data[0] : "";
+                        dlg.mYmaxStr = 1 < data.Length ? data[1] : "";
+                    }
+                } else if (0 <= dataList[i].IndexOf("[z範囲")) {
+                    int p = dataList[i].IndexOf('=');
+                    if (0 <= p) {
+                        string buf = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        string[] data = buf.Split(',');
+                        dlg.mZminStr = 0 < data.Length ? data[0] : "";
+                        dlg.mZmaxStr = 1 < data.Length ? data[1] : "";
+                        dlg.mAutoHeight = 2 < data.Length ? data[2] == "auto" : false;
+                    } else {
+                        dlg.mAutoHeight = true;
+                    }
+                } else if (0 <= dataList[i].IndexOf("[表示形式")) {
+                    int p = dataList[i].IndexOf('=');
+                    if (0 < p) {
+                        string buf = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        dlg.mSurface = buf == "Surface" ;
+                    }
+                } else if (0 <= dataList[i].IndexOf("[アスペクト比固定")) {
+                    int p = dataList[i].IndexOf('=');
+                    if (0 < p) {
+                        dlg.mAspectFix = ylib.boolParse(dataList[i].Substring(p + 1, dataList[i].Length - p - 2));
+                    }
+                } else if (0 <= dataList[i].IndexOf("[背景色")) {
+                    int p = dataList[i].IndexOf('=');
+                    if (0 < p) {
+                        string colorName = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        int colorNo = GL3DLib.mColor4Title.FindIndex(colorName);
+                        if (0 <= colorNo)
+                            dlg.mBackColor = GL3DLib.mColor4[colorNo];
+                    }
+                } else if (0 <= dataList[i].IndexOf("[方程式:")) {
+                    int p = dataList[i].IndexOf(':');
+                    if (0 <= p) {
+                        string buf = dataList[i].Substring(p + 1, dataList[i].Length - p - 2);
+                        string[] data = buf.Split('\n');
+                        List<string> listData = new List<string>();
+                        for (int j = 0; j < data.Length; j++) {
+                            int pc = data[j].IndexOf("$");
+                            string func = ylib.stripControlCode(0 <= pc ? data[j].Substring(0, pc) : data[j]);
+                            if (0 < func.Length)
+                                listData.Add(func);
+                        }
+                        dlg.mFuncList = listData;
+                    }
+                }
+            }
+
+            dlg.Show();
         }
 
         /// <summary>
@@ -672,20 +930,39 @@ namespace NoteApp
         }
 
         /// <summary>
-        /// 画面の一部を切り取ってカーソル位置に貼り付ける
+        /// スクリーンキャプチャ
         /// </summary>
-        /// <param name="rc">RichTextBox</param>
-        private void screenCapture(RichTextBox rc)
+        private void screenCapture()
+        {
+            screenCapture(this);
+            getClipbordImage(rtTextEditor);
+            saveCurFile();
+        }
+
+        /// <summary>
+        /// クリップボード画像の編集
+        /// </summary>
+        private void getClipbordImage()
+        {
+            getClipbordImage(rtTextEditor);
+            saveCurFile();
+        }
+
+        /// <summary>
+        /// 画面の一部を切り取ってクリップボードに貼り付ける
+        /// </summary>
+        /// <param name="window">親Window</param>
+        private void screenCapture(Window window)
         {
             //  自アプリ退避
-            mWinState = this.WindowState;
-            this.WindowState = WindowState.Minimized;
+            mWinState = window.WindowState;
+            window.WindowState = WindowState.Minimized;
             System.Threading.Thread.Sleep(500);
             //  全画面をキャプチャ
             BitmapSource bitmapSource = ylib.bitmap2BitmapSource(ylib.getFullScreenCapture()); ;
             //  自アプリを元に戻す
-            this.WindowState = mWinState;
-            this.Activate();
+            window.WindowState = mWinState;
+            window.Activate();
             //  キャプチャしたイメージを全画面表示し領域を切り取る
             FullView dlg = new FullView();
             dlg.mBitmapSource = bitmapSource;
@@ -693,26 +970,15 @@ namespace NoteApp
                 System.Drawing.Bitmap bitmap = ylib.cnvBitmapSource2Bitmap(bitmapSource);
                 bitmap = ylib.trimingBitmap(bitmap, dlg.mStartPoint, dlg.mEndPoint);
 
-                //  切り取った領域を貼り付ける
-                Image image = new Image();
-                image.Stretch = Stretch.Fill;
-                if (mImageMaxWidth < bitmap.Width) {
-                    image.Width = mImageMaxWidth;
-                    image.Height = image.Width * bitmap.Height / bitmap.Width;
-                } else {
-                    image.Width = bitmap.Width;
-                    image.Height = bitmap.Height;
-                }
-                image.Source = ylib.bitmap2BitmapSource(bitmap);
-                var tp = rc.CaretPosition.GetInsertionPosition(LogicalDirection.Forward);
-                new InlineUIContainer(image, tp);
+                //  クリップボードに張り付ける
+                Clipboard.SetImage(ylib.bitmap2BitmapSource(bitmap));
             }
         }
 
         /// <summary>
         /// クリップボードの画像を大きさを指定して貼り付ける
         /// </summary>
-        /// <param name="rc"></param>
+        /// <param name="rc">RichTextBox</param>
         private void getClipbordImage(RichTextBox rc)
         {
             ImagePaste dlg = new ImagePaste();
@@ -742,7 +1008,7 @@ namespace NoteApp
             if (result == true && 0 < dlg.mEditText.Length) {
                 string itemPath = getItemPath(dlg.mEditText + mFileExt);
                 if (!mItemList.Contains(itemPath)) {
-                    saveCurFile();
+                    saveCurFile(true);
                     createFile(itemPath, mFileFormat);
                     getItemList();
                     int index = lbItemList.Items.IndexOf(Path.GetFileNameWithoutExtension(itemPath));
@@ -770,7 +1036,7 @@ namespace NoteApp
                 string oldItemPath = getItemPath(oldItemName);
                 string newItemPath = getItemPath(dlg.mEditText + Path.GetExtension(oldItemName));
                 if (!mItemList.Contains(newItemPath)) {
-                    saveCurFile();
+                    saveCurFile(true);
                     File.Move(oldItemPath, newItemPath);
                     getItemList();
                     int index = mItemList.IndexOf(newItemPath);
@@ -1022,7 +1288,7 @@ namespace NoteApp
             if (result == true && 0 < dlg.mEditText.Length && oldCategoryName != dlg.mEditText) {
                 string newCategoryName = dlg.mEditText;
                 if (!mCategoryList.Contains(newCategoryName)) {
-                    saveCurFile();
+                    saveCurFile(true);
                     string oldCategoryPath = getCategoryPath(oldCategoryName);
                     string newCategoryPath = getCategoryPath(newCategoryName);
                     Directory.Move(oldCategoryPath, newCategoryPath);
@@ -1128,7 +1394,7 @@ namespace NoteApp
             if (result == true && 0 < dlg.mEditText.Length && oldGenreName != dlg.mEditText) {
                 string newGenreName = dlg.mEditText;
                 if (!mGenreList.Contains(newGenreName)) {
-                    saveCurFile();
+                    saveCurFile(true);
                     string oldGenrePath = getGenrePath(oldGenreName);
                     string newGenrePath = getGenrePath(newGenreName);
                     Directory.Move(oldGenrePath, newGenrePath);
@@ -1398,6 +1664,7 @@ namespace NoteApp
             string itemPath = Path.Combine(itemFolder, "*" + mFileExt);
             string itemPath2 = Path.Combine(itemFolder, "*" + mLinkExt);
             mItemList = ylib.getFiles(itemPath).ToList();
+            mItemList.Sort();
             mItemList.AddRange(ylib.getFiles(itemPath2).ToList());
             if (mItemList.Count == 0) {
                 //  ファイルが存在しない場合、からファイルをつくる
@@ -1493,11 +1760,13 @@ namespace NoteApp
         /// <summary>
         /// 編集中のファイルを保存する
         /// </summary>
-        private void saveCurFile()
+        /// <param name="curPathClear">カレントファイル名クリア</param>
+        private void saveCurFile(bool curPathClear = false)
         {
             if (0 < mCurItemPath.Length)
                 saveFile(mCurItemPath, mFileFormat);
-            mCurItemPath = "";
+            if (curPathClear)
+                mCurItemPath = "";
         }
 
         /// <summary>
