@@ -969,9 +969,10 @@ namespace NoteApp
             if (dlg.ShowDialog() == true) {
                 System.Drawing.Bitmap bitmap = ylib.cnvBitmapSource2Bitmap(bitmapSource);
                 bitmap = ylib.trimingBitmap(bitmap, dlg.mStartPoint, dlg.mEndPoint);
-
-                //  クリップボードに張り付ける
-                Clipboard.SetImage(ylib.bitmap2BitmapSource(bitmap));
+                if (bitmap != null) {
+                    //  クリップボードに張り付ける
+                    Clipboard.SetImage(ylib.bitmap2BitmapSource(bitmap));
+                }
             }
         }
 

@@ -1,5 +1,8 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -30,6 +33,7 @@ namespace NoteApp
             cbAspect.IsChecked = true;
             if (cbAspect.IsChecked == true)
                 tbHeight.IsReadOnly = true;
+            btCopy.IsEnabled = false;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -156,7 +160,7 @@ namespace NoteApp
         }
 
         /// <summary>
-        /// キャプチャしたイメージを表示しトリミングする
+        /// [トリミング]キャプチャしたイメージを表示しトリミングする
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -169,16 +173,42 @@ namespace NoteApp
             if (dlg.ShowDialog() == true) {
                 Bitmap bitmap = ylib.cnvBitmapSource2Bitmap(mBitmapSource);
                 bitmap = ylib.trimingBitmap(bitmap, dlg.mStartPoint, dlg.mEndPoint);
-                //  切り取った領域を貼り付ける
-                mBitmapSource = ylib.bitmap2BitmapSource(bitmap);
-                imImageView.Source = mBitmapSource;
-                //  画像の大きさ
-                mBitmapWidth = bitmap.Width;
-                mBitmapHeight = bitmap.Height;
-                tbWidth.Text = bitmap.Width.ToString();
-                tbHeight.Text = bitmap.Height.ToString();
-                lbImageSize.Content = $"{bitmap.Width} x {bitmap.Height}";
+                if (bitmap != null) {
+                    //  切り取った領域を貼り付ける
+                    mBitmapSource = ylib.bitmap2BitmapSource(bitmap);
+                    imImageView.Source = mBitmapSource;
+                    //  画像の大きさ
+                    mBitmapWidth = bitmap.Width;
+                    mBitmapHeight = bitmap.Height;
+                    tbWidth.Text = bitmap.Width.ToString();
+                    tbHeight.Text = bitmap.Height.ToString();
+                    lbImageSize.Content = $"{bitmap.Width} x {bitmap.Height}";
+                    btCopy.IsEnabled = true;
+                }
             }
+        }
+
+        /// <summary>
+        /// [コピー]トリミングしたイメージをクリップボードに戻す
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btCopy_Click(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetImage(mBitmapSource);
+        }
+
+        /// <summary>
+        /// [保存]イメージをファイルに保存する
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btSave_Click(object sender, RoutedEventArgs e)
+        {
+            List<string> exts = new List<string>() { "png", "jpg", "gif", "bmp" };
+            string path = ylib.saveFileSelect(".", exts);
+            if (0 < path.Length)
+                ylib.saveBitmaImage(mBitmapSource, path);
         }
     }
 }

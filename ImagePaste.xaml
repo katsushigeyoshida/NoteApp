@@ -17,8 +17,13 @@
         <TextBox x:Name="tbRateHeight"  Text="200" Width="40" HorizontalAlignment="Left" Margin="130,60,0,0"  VerticalAlignment="Top" KeyUp="tbRateHeight_KeyUp" />
         <CheckBox x:Name="cbAspect" Content="アスペクト比固定" HorizontalAlignment="Left" Margin="15,90,0,0" VerticalAlignment="Top" Click="cbAspect_Click"/>
         <Image x:Name="imImageView" Margin="200,10,10,10"/>
-        <Button x:Name="btOK" Content="OK" Margin="15,0,0,10" Width="40" Height="20" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="btOK_Click" />
-        <Button x:Name="btCancel" Content="Cancel" Margin="65,0,0,10" Width="40" Height="20" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="btCancel_Click" />
-        <Button x:Name="btTriming" Content="画像トリミング" Margin="15,0,0,40" HorizontalAlignment="Left" Height="20" VerticalAlignment="Bottom" Click="btTriming_Click"/>
+        <Button x:Name="btOK" Content="OK" IsDefault="True" Margin="15,0,0,10" Width="40" Height="20" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="btOK_Click" />
+        <Button x:Name="btCancel" Content="Cancel" IsCancel="True" Margin="65,0,0,10" Width="40" Height="20" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="btCancel_Click" />
+        <Button x:Name="btTriming" Content="画像トリミング" Margin="15,0,0,40" HorizontalAlignment="Left" Height="20" VerticalAlignment="Bottom"
+                ToolTip="クリップボードから取得したイメージをトリミングする" Click="btTriming_Click"/>
+        <Button x:Name="btCopy" Content="コピー" Margin="95,0,0,40" HorizontalAlignment="Left" Height="20" VerticalAlignment="Bottom"
+                ToolTip="トリミングしたイメージをクリップボードにコピーする"  Click="btCopy_Click"/>
+        <Button x:Name="btSave" Content="保存" Margin="135,0,0,40" HorizontalAlignment="Left" Height="20" VerticalAlignment="Bottom"
+                ToolTip="イメージをファイルに保存する" Click="btSave_Click" />
     </Grid>
 </Window>
