@@ -1445,10 +1445,18 @@ namespace NoteApp
         /// </summary>
         private void dataRestor()
         {
-            if (MessageBox.Show("バックアップデータを元に戻します\n既存のデータが上書きされます","確認", MessageBoxButton.OKCancel) == MessageBoxResult.OK) {
-                ylib.copyDrectory(mBackupFolder, mRootFolder);
-                getInitList();
-            }
+            DiffFolder dlg = new DiffFolder();
+            dlg.Owner = this;
+            dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            dlg.mSrcTitle  = "比較元(データフォルダ)";
+            dlg.mDestTitle = "比較先(バックアップ先)";
+            dlg.mSrcFolder  = mRootFolder;
+            dlg.mDestFolder = mBackupFolder;
+            dlg.ShowDialog();
+            //if (MessageBox.Show("バックアップデータを元に戻します\n既存のデータが上書きされます","確認", MessageBoxButton.OKCancel) == MessageBoxResult.OK) {
+            //    ylib.copyDrectory(mBackupFolder, mRootFolder);
+            //    getInitList();
+            //}
         }
 
         /// <summary>
