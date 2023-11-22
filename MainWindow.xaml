@@ -112,6 +112,11 @@
                 <Button x:Name="btSearch" ToolTip="検索" Click="btSearch_Click"  >
                     <Image Source="ICON\Search.png"></Image>
                 </Button>
+                <StatusBarItem HorizontalAlignment="Right">
+                    <Button x:Name="btHelp" ToolTip="ヘルプファイルを開く" Click="btHelp_Click" >
+                        <Image Source="ICON\StatusHelpOutline.png" />
+                    </Button>
+                </StatusBarItem>
             </StatusBar>
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -155,7 +160,9 @@
                         </ListBox.ContextMenu>
                     </ListBox>
                     <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
-                    <RichTextBox Grid.Column="2" x:Name="rtTextEditor" AcceptsTab="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" MouseDoubleClick="rtTextEditor_MouseDoubleClick" PreviewMouseLeftButtonUp="rtTextEditor_PreviewMouseLeftButtonUp" >
+                    <RichTextBox Grid.Column="2" x:Name="rtTextEditor" AcceptsTab="True" VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Auto" MouseDoubleClick="rtTextEditor_MouseDoubleClick" 
+                                 PreviewMouseLeftButtonUp="rtTextEditor_PreviewMouseLeftButtonUp" >
                         <RichTextBox.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="コピー" Command="ApplicationCommands.Copy" />

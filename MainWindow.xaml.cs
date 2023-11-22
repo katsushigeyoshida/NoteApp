@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -71,6 +70,7 @@ namespace NoteApp
             "曜日の挿入(Sunday)","曜日の挿入(SUN)","曜日の挿入(日曜日)","曜日の挿入(日)"
         };
         private int mImageMaxWidth = 600;                       //  スクリーンキャプチャしたイメージを貼り付ける最大幅
+        private string mHelpFile = "NoteApp_Manual.pdf";          //  PDFのヘルプファイル
 
         private YLib ylib = new YLib();
 
@@ -173,9 +173,12 @@ namespace NoteApp
         {
             Properties.Settings.Default.BackupFolder = mBackupFolder;
             Properties.Settings.Default.RootFolder = mRootFolder;
-            Properties.Settings.Default.ItemName = lbItemList.Items[lbItemList.SelectedIndex].ToString();
-            Properties.Settings.Default.CategoryName = lbCategoryList.Items[lbCategoryList.SelectedIndex].ToString();
-            Properties.Settings.Default.GenreName = cbGenreList.Items[cbGenreList.SelectedIndex].ToString();
+            if (0 <= lbItemList.SelectedIndex)
+                Properties.Settings.Default.ItemName = lbItemList.Items[lbItemList.SelectedIndex].ToString();
+            if (0 <= lbCategoryList.SelectedIndex)
+                Properties.Settings.Default.CategoryName = lbCategoryList.Items[lbCategoryList.SelectedIndex].ToString();
+            if (0 <= cbGenreList.SelectedIndex)
+                Properties.Settings.Default.GenreName = cbGenreList.Items[cbGenreList.SelectedIndex].ToString();
             //  Windowの位置とサイズを保存(登録項目をPropeties.settingsに登録して使用する)
             Properties.Settings.Default.MainWindowTop = Top;
             Properties.Settings.Default.MainWindowLeft = Left;
@@ -199,12 +202,20 @@ namespace NoteApp
             if (e.KeyboardDevice.Modifiers == ModifierKeys.Control)
                 control = true;
 
-            if (e.Key == Key.F12) {
-                //  スクリーンキャプチャ
-                screenCapture();
-            } else if (e.Key == Key.F11) {
-                //  クリップボード画像の編集
-                getClipbordImage();
+            if (control) {
+                if (e.Key == Key.C) {
+
+                } else if (e.Key == Key.V) {
+                    //ApplicationCommands.Paste;
+                }
+            } else {
+                if (e.Key == Key.F12) {
+                    //  スクリーンキャプチャ
+                    screenCapture();
+                } else if (e.Key == Key.F11) {
+                    //  クリップボード画像の編集
+                    getClipbordImage();
+                }
             }
         }
 
@@ -445,6 +456,16 @@ namespace NoteApp
         private void btImagePaste_Click(object sender, RoutedEventArgs e)
         {
             getClipbordImage();
+        }
+
+        /// <summary>
+        /// ヘルプファイルを開く
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btHelp_Click(object sender, RoutedEventArgs e)
+        {
+            ylib.openUrl(mHelpFile);
         }
 
         /// <summary>
