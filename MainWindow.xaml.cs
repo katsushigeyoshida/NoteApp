@@ -479,9 +479,20 @@ namespace NoteApp
             //  カーソルの位置の単語取得
             string word = getCursorPosWord(rtTextEditor);
             //  ファイルの実行(開く)
-            if (0 < word.Length && (0 <= word.IndexOf("http") || File.Exists(word)) )
+            if (0 < word.Length && 0 <= word.IndexOf("http")) {
+                int ps = word.IndexOf("http");
+                if (0 < ps) {
+                    int pe = word.IndexOfAny(new char[] { ' ', '\t', '\n' }, ps);
+                    if (0 < pe) {
+                        word = word.Substring(ps, pe - ps);
+                    } else {
+                        word = word.Substring(ps);
+                    }
+                }
                 ylib.openUrl(word);
-            else {
+            } else if (0 < word.Length && File.Exists(word)) {
+                ylib.openUrl(word);
+            } else {
                 string str = getCursorPosData(rtTextEditor);
                 if (2 < str.Length) {
                     List<string> listData = getWordList(str.Substring(1, str.Length - 2), true);
