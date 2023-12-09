@@ -1,0 +1,23 @@
+﻿<Window x:Class="NoteApp.FileExport"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NoteApp"
+        mc:Ignorable="d"
+        Title="FileExport" Height="200" Width="500" Loaded="Window_Loaded" Closing="Window_Closing">
+    <Grid>
+        <Label Content="変換元" Margin="10,5,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label Name="lbCategory" Margin="90,5,160,0" Height ="25" VerticalAlignment="Top"/>
+        <Label Content="形式" Margin="0,5,120,0" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+        <ComboBox Name="cbExportType" Margin="0,5,10,0" Width="100" Height ="25" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+        <Label Content="エキスポート先" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="cbExportFolder" Margin="90,35,10,0" VerticalAlignment="Top" MouseDoubleClick="cbExportFolder_MouseDoubleClick" />
+        <Label Content="ファイル名" Margin="10,60,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label Name="lbExportFile" Margin="90,60,10,0" Height ="25" VerticalAlignment="Top"/>
+        <Label Content="進捗" Margin="10,80,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <ProgressBar Name="pbExport" Margin="90,88,10,0" Height ="15" VerticalAlignment="Top"/>
+        <Button Name="btStart" Content="開始" Margin="0,0,80,15" Width="50" Height="20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="btStart_Click"/>
+        <Button Name="btEnd" Content="終了" Margin="0,0,20,15" Width="50" Height="20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="btEnd_Click"/>
+    </Grid>
+</Window>
