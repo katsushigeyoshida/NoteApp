@@ -296,6 +296,11 @@ namespace NoteApp
                 copyCategory();
             } else if (menuItem.Name.CompareTo("lbCategoryMoveMenu") == 0) {
                 copyCategory(true);
+            } else if (menuItem.Name.CompareTo("lbCategoryExportMenu") == 0) {
+                if (lbCategoryList.SelectedIndex < 0)
+                    return;
+                string categoryPath = mCategoryList[lbCategoryList.SelectedIndex];
+                exportCategory(categoryPath);
             }
         }
 
@@ -314,6 +319,11 @@ namespace NoteApp
                 renameGenre();
             } else if (menuItem.Name.CompareTo("cbGenreRemoveMenu") == 0) {
                 removeGenre();
+            } else if (menuItem.Name.CompareTo("cbGenreExportMenu") == 0) {
+                if (cbGenreList.SelectedIndex < 0)
+                    return;
+                string genrePath = mGenreList[cbGenreList.SelectedIndex];
+                exportCategory(genrePath);
             }
         }
 
@@ -1259,6 +1269,21 @@ namespace NoteApp
         }
 
         /// <summary>
+        /// 分類/大分類単位でファイルをエキスポート
+        /// </summary>
+        /// <param name="categoryPath"></param>
+        private void exportCategory(string categoryPath)
+        {
+            FileExport dlg = new FileExport();
+            dlg.Owner = this;
+            dlg.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            dlg.Title = "ファイルのエキスポート";
+            dlg.mCategoryName = Path.GetFileName(categoryPath);
+            dlg.mSrcFolder = categoryPath;
+            dlg.ShowDialog();
+        }
+
+        /// <summary>
         /// 項目ファイルの属性表示
         /// </summary>
         private void propertyItem()
@@ -1826,7 +1851,7 @@ namespace NoteApp
         /// ファイルを保存
         /// </summary>
         /// <param name="path">ファイルパス</param>
-        /// <param fileFormat="path">ファイルフォーマット</param>
+        /// <param name="fileFormat">ファイルフォーマット</param>
         private void saveFile(string path, string fileFormat)
         {
             if (path.Length == 0)
@@ -1848,7 +1873,7 @@ namespace NoteApp
         /// RichTextBoxに読み込む
         /// </summary>
         /// <param name="path">ファイルパス</param>
-        /// <param fileFormat="path">ファイルフォーマット</param>
+        /// <param name="fileFormat">ファイルフォーマット</param>
         private bool loadFile(string fpath, string fileFormat)
         {
             string path = getLinkPath(fpath);

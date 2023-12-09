@@ -16,6 +16,7 @@
                                 <MenuItem Name="cbGenreAddMenu" Header="追加" Click="cbGenreMenu_Click" />
                                 <MenuItem Name="cbGenreRenameMenu" Header="名前の変更" Click="cbGenreMenu_Click" />
                                 <MenuItem Name="cbGenreRemoveMenu" Header="削除" Click="cbGenreMenu_Click" />
+                                <MenuItem Name="cbGenreExportMenu" Header="エクスポート" Click="cbGenreMenu_Click" />
                             </ContextMenu>
                         </ComboBox.ContextMenu>
                     </ComboBox>
@@ -132,6 +133,7 @@
                             <MenuItem Name="lbCategoryRemoveMenu" Header="削除" Click="lbCategoryMenu_Click" />
                             <MenuItem Name="lbCategoryCopyMenu" Header="コピー" Click="lbCategoryMenu_Click" />
                             <MenuItem Name="lbCategoryMoveMenu" Header="移動" Click="lbCategoryMenu_Click" />
+                            <MenuItem Name="lbCategoryExportMenu" Header="エキスポート" Click="lbCategoryMenu_Click" />
                         </ContextMenu>
                     </ListBox.ContextMenu>
                 </ListBox>

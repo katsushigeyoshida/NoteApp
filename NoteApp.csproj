@@ -67,6 +67,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="FileExport.xaml.cs">
+      <DependentUpon>FileExport.xaml</DependentUpon>
+    </Compile>
     <Compile Include="FuncPlot.xaml.cs">
       <DependentUpon>FuncPlot.xaml</DependentUpon>
     </Compile>
@@ -79,6 +82,10 @@
     <Compile Include="SelectCategory.xaml.cs">
       <DependentUpon>SelectCategory.xaml</DependentUpon>
     </Compile>
+    <Page Include="FileExport.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="FuncPlot.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
