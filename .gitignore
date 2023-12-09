@@ -1,3 +1,4 @@
 # .gitignore の設定
 bin/
 obj/
+.vs/
