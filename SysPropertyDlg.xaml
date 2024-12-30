@@ -1,0 +1,23 @@
+﻿<Window x:Class="NoteApp.SysPropertyDlg"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NoteApp"
+        mc:Ignorable="d"
+        Title="SysPropertyDlg" Height="220" Width="400" Loaded="Window_Loaded">
+    <Grid>
+        <Label Content="スクリーンキャプチャ・タイムラグ" Margin="5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbScreenCaptureTimelag" Width="60" Margin="160,5,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" />
+        <Label Content="ms" Margin="220,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label Content="データフォルダ" Margin="5,30,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbDataFolder" Margin="110,35,20,0" VerticalAlignment="Top" MouseDoubleClick="tbDataFolder_MouseDoubleClick" />
+        <Label Content="バックアップフォルダ" Margin="5,60,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbBackupFolder" Margin="110,65,20,0" VerticalAlignment="Top" MouseDoubleClick="tbBackupFolder_MouseDoubleClick" />
+        <Button x:Name="btBackupExec" Content="バックアップ実行" Margin="10,100,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Click="btBackupExec_Click"/>
+        <Button x:Name="btBackupRestor" Content="バックアップ復元" Margin="110,100,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Click="btBackupRestor_Click"/>
+        <Button x:Name="btProperty" Content="プロパティ" Margin="110,100,20,0" HorizontalAlignment="Right" VerticalAlignment="Top" Click="btProperty_Click"/>
+        <Button x:Name="btOK" Content="OK" Width="60" Margin="110,150,100,0" HorizontalAlignment="Right" VerticalAlignment="Top" Click="btOK_Click"/>
+        <Button x:Name="btCancel" Content="Cancel" Width="60" Margin="110,150,20,0" HorizontalAlignment="Right" VerticalAlignment="Top" Click="btCancel_Click"/>
+    </Grid>
+</Window>

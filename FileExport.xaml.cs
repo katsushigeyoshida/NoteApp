@@ -61,7 +61,8 @@ namespace NoteApp
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             //  変換先フォルダリストの保存
-            ylib.saveListData(mExportFolderListPath, mExportFolderList);
+            List<string> exportFolderList = mExportFolderList.GetRange(0, Math.Min(30, mExportFolderList.Count));
+            ylib.saveListData(mExportFolderListPath, exportFolderList);
         }
 
         /// <summary>

@@ -51,7 +51,7 @@ namespace NoteApp
         };
         private string mFileFormat;                             //  保存ファイル形式
         private string mFileExt;                                //  保存ファイルの拡張子
-        private string mLinkExt = ".nlnk";                     //  リンクファイルの拡張子
+        private string mLinkExt = ".nlnk";                      //  リンクファイルの拡張子
         private bool mEnableItemList = true;                    //  項目変更の有効性
         private bool mEnableCategoryList = true;                //  小分類変更の有効性
         private bool mEnableGenreList = true;                   //  大分類変更の有効性
@@ -70,7 +70,8 @@ namespace NoteApp
             "曜日の挿入(Sunday)","曜日の挿入(SUN)","曜日の挿入(日曜日)","曜日の挿入(日)"
         };
         private int mImageMaxWidth = 600;                       //  スクリーンキャプチャしたイメージを貼り付ける最大幅
-        private string mHelpFile = "NoteApp_Manual.pdf";          //  PDFのヘルプファイル
+        private int mScreenCaptureTimeLag = 100;                //  スクリーンキャプチャのタイムラグ(ms)
+        private string mHelpFile = "NoteApp_Manual.pdf";        //  PDFのヘルプファイル
 
         private YLib ylib = new YLib();
 
@@ -153,6 +154,8 @@ namespace NoteApp
             //if (0 < Properties.Settings.Default.ItemListWidth)
             //    lbItemList.Width = Properties.Settings.Default.ItemListWidth;
 
+            if (0 < Properties.Settings.Default.ScreenCaptureTimelag)
+                mScreenCaptureTimeLag = Properties.Settings.Default.ScreenCaptureTimelag;
             if (0 < Properties.Settings.Default.BackupFolder.Length)
                 mBackupFolder = Properties.Settings.Default.BackupFolder;
             if (0 < Properties.Settings.Default.RootFolder.Length)
@@ -171,6 +174,7 @@ namespace NoteApp
         /// </summary>
         private void WindowFormSave()
         {
+            Properties.Settings.Default.ScreenCaptureTimelag = mScreenCaptureTimeLag;
             Properties.Settings.Default.BackupFolder = mBackupFolder;
             Properties.Settings.Default.RootFolder = mRootFolder;
             if (0 <= lbItemList.SelectedIndex)
@@ -211,7 +215,7 @@ namespace NoteApp
             } else {
                 if (e.Key == Key.F12) {
                     //  スクリーンキャプチャ
-                    screenCapture();
+                    screenCapture(mScreenCaptureTimeLag);
                 } else if (e.Key == Key.F11) {
                     //  クリップボード画像の編集
                     getClipbordImage();
@@ -342,6 +346,10 @@ namespace NoteApp
                 range.Text = textDateTime(range.Text);
             } else if (menuItem.Name.CompareTo("rtEditorUrlCnvMenu") == 0) {
                 range.Text = Uri.UnescapeDataString(range.Text);
+            } else if (menuItem.Name.CompareTo("rtEditorExecutMenu") == 0) {
+                if (0 < range.Text.Length) {
+                    ylib.openUrl(range.Text);
+                }
             }
         }
 
@@ -429,22 +437,18 @@ namespace NoteApp
         /// <param name="e"></param>
         private void btSetting_Click(object sender, RoutedEventArgs e)
         {
-            MenuDialog dlg = new MenuDialog();
-            dlg.mMainWindow = this;
-            dlg.mHorizontalAliment = 0;
-            dlg.mVerticalAliment = 2;
-            dlg.Title = "設定メニュー";
-            dlg.mMenuList = mSettingMenu.ToList();
-            dlg.mOneClick = true;
-            dlg.ShowDialog();
-            int index = mSettingMenu.FindIndex(dlg.mResultMenu);
-            switch (index) {
-                case 0: dataBackUp(); break;
-                case 1: dataRestor(); break;
-                case 2: setRootFolder(); break;
-                case 3: setBackupFolder(); break;
-                case 4: setInitFolder(); break;
-                case 5: infoProperty(); break;
+            SysPropertyDlg dlg = new SysPropertyDlg();
+            dlg.Owner = this;
+            dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            dlg.mScreenCaptureTimeLag = mScreenCaptureTimeLag;
+            dlg.mDataFolder = mRootFolder;
+            dlg.mBackupFolder = mBackupFolder;
+            dlg.mFileExt = mFileExt;
+            dlg.mLinkExt = mLinkExt;
+            if (dlg.ShowDialog() == true) {
+                mScreenCaptureTimeLag = dlg.mScreenCaptureTimeLag;
+                mRootFolder = dlg.mDataFolder;
+                mBackupFolder = dlg.mBackupFolder;
             }
         }
 
@@ -455,7 +459,7 @@ namespace NoteApp
         /// <param name="e"></param>
         private void btScreenCapture_Click(object sender, RoutedEventArgs e)
         {
-            screenCapture();
+            screenCapture(mScreenCaptureTimeLag);
         }
 
         /// <summary>
@@ -489,8 +493,10 @@ namespace NoteApp
             //  カーソルの位置の単語取得
             string word = getCursorPosWord(rtTextEditor);
             //  ファイルの実行(開く)
-            if (0 < word.Length && 0 <= word.IndexOf("http")) {
+            if (0 < word.Length && (0 <= word.IndexOf("http") || 0 <= word.IndexOf("file:"))) {
                 int ps = word.IndexOf("http");
+                if (ps < 0)
+                    ps = word.IndexOf("file:");
                 if (0 < ps) {
                     int pe = word.IndexOfAny(new char[] { ' ', '\t', '\n' }, ps);
                     if (0 < pe) {
@@ -974,9 +980,9 @@ namespace NoteApp
         /// <summary>
         /// スクリーンキャプチャ
         /// </summary>
-        private void screenCapture()
+        private void screenCapture(int interval = 0)
         {
-            screenCapture(this);
+            screenCapture(this, interval);
             getClipbordImage(rtTextEditor);
             saveCurFile();
         }
@@ -994,12 +1000,13 @@ namespace NoteApp
         /// 画面の一部を切り取ってクリップボードに貼り付ける
         /// </summary>
         /// <param name="window">親Window</param>
-        private void screenCapture(Window window)
+        private void screenCapture(Window window, int timeLag = 0)
         {
             //  自アプリ退避
             mWinState = window.WindowState;
             window.WindowState = WindowState.Minimized;
-            System.Threading.Thread.Sleep(500);
+            if (0 < timeLag)
+            System.Threading.Thread.Sleep(timeLag);
             //  全画面をキャプチャ
             BitmapSource bitmapSource = ylib.bitmap2BitmapSource(ylib.getFullScreenCapture()); ;
             //  自アプリを元に戻す
