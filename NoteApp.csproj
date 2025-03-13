@@ -240,5 +240,8 @@
   <ItemGroup>
     <Resource Include="Document\History.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ICON\SortByColumn.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
