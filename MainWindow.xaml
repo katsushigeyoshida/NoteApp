@@ -167,12 +167,12 @@
                                  PreviewMouseLeftButtonUp="rtTextEditor_PreviewMouseLeftButtonUp" >
                         <RichTextBox.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="コピー" Command="ApplicationCommands.Copy" />
-                                <MenuItem Header="切り取り" Command="ApplicationCommands.Cut" />
-                                <MenuItem Header="貼付け" Command="ApplicationCommands.Paste" />
-                                <MenuItem Name="rtEditorCalcMenu" Header="計算" Click="rtEditorMenu_Click" />
-                                <MenuItem Name="rtEditorDateTimeMenu" Header="日時の挿入・変換" Click="rtEditorMenu_Click" />
-                                <MenuItem Name="rtEditorUrlCnvMenu" Header="Webアドレス変換" Click="rtEditorMenu_Click" />
+                                <MenuItem Header="コピー Ctrl+C" Command="ApplicationCommands.Copy" />
+                                <MenuItem Header="切り取り Ctrl+X" Command="ApplicationCommands.Cut" />
+                                <MenuItem Header="貼付け Ctrl+V" Command="ApplicationCommands.Paste" />
+                                <MenuItem Name="rtEditorCalcMenu" Header="計算 F9" Click="rtEditorMenu_Click" />
+                                <MenuItem Name="rtEditorDateTimeMenu" Header="日時の挿入・変換 F8" Click="rtEditorMenu_Click" />
+                                <MenuItem Name="rtEditorUrlCnvMenu" Header="Webアドレス変換 F7" Click="rtEditorMenu_Click" />
                                 <MenuItem Name="rtEditorExecutMenu" Header="開く" Click="rtEditorMenu_Click" />
                             </ContextMenu>
                         </RichTextBox.ContextMenu>

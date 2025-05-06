@@ -219,6 +219,18 @@ namespace NoteApp
                 } else if (e.Key == Key.F11) {
                     //  クリップボード画像の編集
                     getClipbordImage();
+                } else if (e.Key == Key.F9) {
+                    //  計算
+                    TextRange range = new TextRange(rtTextEditor.Selection.Start, rtTextEditor.Selection.End);
+                    range.Text = textCalulate(range.Text);
+                } else if (e.Key == Key.F8) {
+                    //  日時挿入
+                    TextRange range = new TextRange(rtTextEditor.Selection.Start, rtTextEditor.Selection.End);
+                    range.Text = textDateTime(range.Text);
+                } else if (e.Key == Key.F7) {
+                    //  Webアドレス変換
+                    TextRange range = new TextRange(rtTextEditor.Selection.Start, rtTextEditor.Selection.End);
+                    range.Text = Uri.UnescapeDataString(range.Text);
                 }
             }
         }
