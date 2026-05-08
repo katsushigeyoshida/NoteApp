@@ -353,12 +353,19 @@ namespace NoteApp
             MenuItem menuItem = (MenuItem)e.Source;
             TextRange range = new TextRange(rtTextEditor.Selection.Start, rtTextEditor.Selection.End);
             if (menuItem.Name.CompareTo("rtEditorCalcMenu") == 0) {
+                //  計算 F9
                 range.Text = textCalulate(range.Text);
             } else if (menuItem.Name.CompareTo("rtEditorDateTimeMenu") == 0) {
+                //  日時の挿入・変換 F8
                 range.Text = textDateTime(range.Text);
             } else if (menuItem.Name.CompareTo("rtEditorUrlCnvMenu") == 0) {
+                //  Webアドレス変換 F7
                 range.Text = Uri.UnescapeDataString(range.Text);
+            } else if (menuItem.Name.CompareTo("rtEditorRetCnvMenu") == 0) {
+                //  Retコード変換
+                range.Text = cnvRetCode(range.Text);
             } else if (menuItem.Name.CompareTo("rtEditorExecutMenu") == 0) {
+                //  開く
                 if (0 < range.Text.Length) {
                     ylib.openUrl(range.Text);
                 }
@@ -838,6 +845,16 @@ namespace NoteApp
             }
 
             dlg.Show();
+        }
+
+        /// <summary>
+        /// 改行コード変換(\r\n → \r)
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private string cnvRetCode(string text)
+        {
+            return text.Replace("\r\n", "\r");
         }
 
         /// <summary>
@@ -1607,7 +1624,6 @@ namespace NoteApp
         /// <returns></returns>
         private string getDirectoryInfo(string folder, string title, string ext)
         {
-            string buf = "";
             List<FileInfo> fi = ylib.getDirectoriesInfo(folder, "*" + ext);
             long size = fi.Sum(x => x.Length);
             return $"{title}ファイル数: {fi.Count}  データサイズ: {size.ToString("#,###")} byte";
